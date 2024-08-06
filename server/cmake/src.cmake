@@ -1,0 +1,14 @@
+set(
+    SRC
+    ${PROJECT_SOURCE_DIR}/src/Database.cpp
+    ${PROJECT_SOURCE_DIR}/src/Database.hpp
+    ${PROJECT_SOURCE_DIR}/src/httplib.cpp
+    ${PROJECT_SOURCE_DIR}/src/httplib.h
+    ${PROJECT_SOURCE_DIR}/src/HTTPServer.cpp
+    ${PROJECT_SOURCE_DIR}/src/HTTPServer.hpp
+    ${PROJECT_SOURCE_DIR}/src/json.hpp
+    ${PROJECT_SOURCE_DIR}/src/tools.cpp
+    ${PROJECT_SOURCE_DIR}/src/tools.hpp
+    ${PROJECT_SOURCE_DIR}/src/UDP.cpp
+    ${PROJECT_SOURCE_DIR}/src/UDP.hpp
+)

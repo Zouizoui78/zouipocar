@@ -1,0 +1,11 @@
+html, body, #map {
+    height: 100%;
+}
+
+.container {
+    height: 100%;
+}
+
+.row-first {
+    height: 80%;
+}

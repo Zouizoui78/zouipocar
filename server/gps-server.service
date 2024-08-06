@@ -1,0 +1,12 @@
+[Unit]
+Description=206 gps server
+
+[Service]
+UMask=0002
+User=zoui
+Group=zoui
+ExecStart=/opt/gps-server/gps-server
+WorkingDirectory=/opt/gps-server
+
+[Install]
+WantedBy=multi-user.target
