@@ -6,29 +6,29 @@
 #include <functional>
 #include <thread>
 
-#define UDP_MAX_PACKET_SIZE 65527
+namespace zouipocar {
 
 class UDP {
-    public:
-    
-    UDP(uint16_t port);
+public:
+    using UDPCallback = std::function<void (std::vector<uint8_t>)>;
 
+    UDP(uint16_t port, UDPCallback callback);
     ~UDP();
 
-    bool is_ok();
+    UDP(const UDP& other) = delete;
+    UDP(UDP&& other) = delete;
+    UDP& operator=(const UDP& other) = delete;
+    UDP& operator=(UDP&& other) = delete;
 
-    bool start_listen(std::function<void (uint8_t *data, size_t size)> callback);
+private:
+    void listen(UDPCallback callback);
 
-    private:
     int _socket;
-    sockaddr_in _addr;
-
-    bool _ok = false;
-
-    std::thread _listen_thread;
+    std::jthread _listen_thread;
     bool _listen_thread_running = false;
-    std::function<void (uint8_t *data, size_t size)> _listen_callback;
-    uint8_t *_listen_buffer = nullptr;
+    std::vector<uint8_t> _listen_buffer;
 };
+
+}
 
 #endif // UDP
