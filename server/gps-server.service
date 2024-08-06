@@ -1,12 +1,9 @@
 [Unit]
-Description=206 gps server
+Description=zouipocar server
 
 [Service]
-UMask=0002
-User=zoui
-Group=zoui
-ExecStart=/opt/gps-server/gps-server
-WorkingDirectory=/opt/gps-server
+ExecStart=/opt/zouipocar/zouipocar
+WorkingDirectory=/opt/zouipocar
 
 [Install]
 WantedBy=multi-user.target

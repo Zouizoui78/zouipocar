@@ -12,6 +12,8 @@ option(ZOUIPOCAR_TESTS "Build unit tests" ON)
 
 add_library(zouipocar STATIC ${SRC})
 
+target_include_directories(zouipocar PUBLIC external)
+
 find_package(SQLite3 REQUIRED)
 target_link_libraries(zouipocar PRIVATE SQLite::SQLite3)
 
