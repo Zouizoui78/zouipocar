@@ -1,19 +1,16 @@
+#include "constants.hpp"
 #include "Database.hpp"
 
-#include <ctime>
+#include <format>
+#include <iostream>
+#include <stdexcept>
 
-Database::Database(const std::string &path) {
-    _path = path;
+namespace zouipocar {
 
-    if (_path.empty()) {
-        std::cout << "Cannot open database, empty path.\n";
-        return;
-    }
-
-    int res = sqlite3_open(_path.c_str(), &_db_handler);
+Database::Database() {
+    int res = sqlite3_open(DB_PATH.data(), &_db_handler);
     if (res != SQLITE_OK || _db_handler == nullptr) {
-        std::cout << "Failed to open database file " << _path << " : " << sqlite3_errmsg(_db_handler) << std::endl;
-        return;
+        throw std::runtime_error(std::format("Failed to open database file {} : {}", DB_PATH, sqlite3_errmsg(_db_handler)));
     }
 
     res = sqlite3_exec(_db_handler, "PRAGMA synchronous = OFF", nullptr, nullptr, &_errmsg);
@@ -21,46 +18,32 @@ Database::Database(const std::string &path) {
         std::cout << "Failed to disable fs sync for database.\n";
     }
 
-    _is_open = create_table();
-
-    if (_is_open)
-        std::cout << "Opened database file '" << _path << "'" << std::endl;
-    else
-        std::cout << "Failed to create table zoui in database.\n";
+    create_table();
 }
 
-Database::~Database() {
-    if (is_open()) {
+Database::~Database() noexcept {
+    if (_db_handler != nullptr) {
         int res = sqlite3_close(_db_handler);
         if (res != SQLITE_OK) {
-            std::cout << "Failed to close database handler for " << _path << std::endl;
+            std::cout << "Failed to close database " << DB_PATH << std::endl;
         }
     }
-
-    _is_open = false;
-    std::cout << "Closed database file '" << _path << "'" << std::endl;
 }
 
-bool Database::is_open() {
-    return _is_open && _db_handler != nullptr;
-}
-
-bool Database::create_table() {
-    std::string statement = "create table if not exists zoui (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL);";
+void Database::create_table() {
+    std::string statement = "CREATE TABLE IF NOT EXISTS fixes (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL);";
     int res = sqlite3_exec(_db_handler, statement.c_str(), nullptr, nullptr, &_errmsg);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to create table zoui : " << _errmsg << std::endl;
-        return false;
+        throw std::runtime_error(std::format("Failed to create table zoui : {}", _errmsg));
     }
-    return true;
 }
 
-bool Database::insert_fix(json fix) {
-    std::string statement = "insert into zoui values(";
-    statement += std::to_string(fix["timestamp"].get<time_t>()) + ",";
-    statement += std::to_string(fix["speed"].get<uint8_t>()) + ",";
-    statement += std::to_string(fix["latitude"].get<float>()) + ",";
-    statement += std::to_string(fix["longitude"].get<float>()) + ");";
+bool Database::insert_fix(Fix fix) {
+    std::string statement = "INSERT INTO zoui VALUES(";
+    statement += std::to_string(fix.timestamp) + ",";
+    statement += std::to_string(fix.speed) + ",";
+    statement += std::to_string(fix.latitude) + ",";
+    statement += std::to_string(fix.longitude) + ");";
     int res = sqlite3_exec(_db_handler, statement.c_str(), nullptr, nullptr, &_errmsg);
 
     if (res != SQLITE_OK) {
@@ -71,82 +54,87 @@ bool Database::insert_fix(json fix) {
     return true;
 }
 
-json Database::query_fix(time_t date) {
-    json j;
+std::optional<Fix> Database::get_fix(time_t date) {
+    Fix fix;
 
-    bool ok = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &j](sqlite3_stmt *stmt) {
-        j = initialize_fix_json();
-        j["timestamp"] = sqlite3_column_int64(stmt, 0);
-        j["speed"] = sqlite3_column_int64(stmt, 1);
-        j["latitude"] = sqlite3_column_double(stmt, 2);
-        j["longitude"] = sqlite3_column_double(stmt, 3);
+    bool ok = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &fix](sqlite3_stmt *stmt) {
+        fix.timestamp = sqlite3_column_int64(stmt, 0);
+        fix.speed = sqlite3_column_int64(stmt, 1);
+        fix.latitude = sqlite3_column_double(stmt, 2);
+        fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
     if (!ok) {
-        std::cout << "Failed to query fix with timestamp = " << date << std::endl;
+        return std::nullopt;
     }
 
-    return j;
+    return fix;
 }
 
-json Database::query_fix_range(time_t start, time_t end) {
-    json j;
+std::vector<Fix> Database::get_fix_range(time_t start, time_t end) {
+    std::vector<Fix> ret;
 
-    bool ok = query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &j](sqlite3_stmt *stmt) {
-        json to_add = {
-            { "timestamp", sqlite3_column_int64(stmt, 0) },
-            { "speed", sqlite3_column_int64(stmt, 1) },
-            { "latitude", sqlite3_column_double(stmt, 2) },
-            { "longitude", sqlite3_column_double(stmt, 3) }
-        };
-        j.push_back(to_add);
+    bool ok = query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {
+        ret.emplace_back(
+            sqlite3_column_int64(stmt, 0),
+            sqlite3_column_int64(stmt, 1),
+            sqlite3_column_double(stmt, 2),
+            sqlite3_column_double(stmt, 3)
+        );
+    });
+
+    return ret;
+}
+
+std::optional<Fix> Database::get_first_fix() {
+    Fix fix;
+    bool ok = query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
+        fix.timestamp = sqlite3_column_int64(stmt, 0);
+        fix.speed = sqlite3_column_int64(stmt, 1);
+        fix.latitude = sqlite3_column_double(stmt, 2);
+        fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
     if (!ok) {
-        std::cout << "Failed to query fixes between = " << start << " and " << end << std::endl;
+        return std::nullopt;
     }
 
-    return j;
+    return fix;
 }
 
-json Database::query_first_fix() {
-    json j = initialize_fix_json();
-    bool ok = query("SELECT * FROM zoui LIMIT 1;", [this, &j](sqlite3_stmt *stmt) {
-        j["timestamp"] = sqlite3_column_int64(stmt, 0);
-        j["speed"] = sqlite3_column_int64(stmt, 1);
-        j["latitude"] = sqlite3_column_double(stmt, 2);
-        j["longitude"] = sqlite3_column_double(stmt, 3);
+std::optional<Fix> Database::get_last_fix() {
+    Fix fix;
+    bool ok = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
+        fix.timestamp = sqlite3_column_int64(stmt, 0);
+        fix.speed = sqlite3_column_int64(stmt, 1);
+        fix.latitude = sqlite3_column_double(stmt, 2);
+        fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
     if (!ok) {
-        std::cout << "Failed to query last fix\n";
+        return std::nullopt;
     }
 
-    return j;
+    return fix;
 }
 
-json Database::query_last_fix() {
-    json j = initialize_fix_json();
-    bool ok = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &j](sqlite3_stmt *stmt) {
-        j["timestamp"] = sqlite3_column_int64(stmt, 0);
-        j["speed"] = sqlite3_column_int64(stmt, 1);
-        j["latitude"] = sqlite3_column_double(stmt, 2);
-        j["longitude"] = sqlite3_column_double(stmt, 3);
-    });
+bool Database::query(const std::string &statement, DBQueryCallback callback) {
+    sqlite3_stmt *stmt = nullptr;
 
-    if (!ok) {
-        std::cout << "Failed to query last fix\n";
+    int res = sqlite3_prepare_v2(_db_handler, statement.c_str(), -1, &stmt, nullptr);
+    if (res != SQLITE_OK) {
+        std::cout << "Failed to prepare SQL statement : " << sqlite3_errmsg(_db_handler);
+        return false;
     }
 
-    return j;
+    res = sqlite3_step(stmt);
+    while (res == SQLITE_ROW) {
+        callback(stmt);
+        res = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
 }
 
-json Database::initialize_fix_json() {
-    json j = {
-        { "timestamp", 0 },
-        { "speed", 0 },
-        { "latitude", 0 },
-        { "longitude", 0 }
-    };
-    return j;
 }

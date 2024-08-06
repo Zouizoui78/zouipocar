@@ -1,54 +1,52 @@
 #ifndef DATABASE_HPP
 #define DATABASE_HPP
 
-#include <iostream>
+#include <functional>
+#include <optional>
 #include <string>
-#include <sqlite3.h>
+#include <vector>
 
-#include "json.hpp"
+#include "Fix.hpp"
+#include "sqlite3.h"
 
-using json = nlohmann::json;
+namespace zouipocar {
 
 class Database {
-    public:
-    Database(const std::string &path);
-    ~Database();
-    bool is_open();
+public:
+    using DBQueryCallback = std::function<void (sqlite3_stmt*)>;
 
-    bool insert_fix(json fix);
-    json query_fix(time_t date);
-    json query_fix_range(time_t start, time_t end);
-    json query_first_fix();
-    json query_last_fix();
+    Database();
+    ~Database() noexcept;
 
-    private:
-    std::string _path = "";
-    bool _is_open = false;
+    Database(const Database& other) = delete;
+    Database(Database&& other) = delete;
+    Database& operator=(const Database& other) = delete;
+    Database& operator=(Database&& other) = delete;
+
+    // Return false if insertion fails, true otherwise.
+    bool insert_fix(Fix fix);
+
+    // Return the fix if found, std::nullopt otherwise.
+    std::optional<Fix> get_fix(time_t date);
+
+    // Return a vector containing the fixes if the range is valid,
+    // and an empty vector otherwise.
+    std::vector<Fix> get_fix_range(time_t start, time_t end);
+
+    // Return first fix if it exists, std::nullopt otherwise.
+    std::optional<Fix> get_first_fix();
+
+    // Return latest fix if it exists, std::nullopt otherwise.
+    std::optional<Fix> get_last_fix();
+
+private:
     sqlite3 *_db_handler = nullptr;
     char *_errmsg = nullptr;
 
-    bool create_table();
-    json initialize_fix_json();
-
-    template <typename T>
-    bool query(const std::string &statement, T callback) {
-        sqlite3_stmt *stmt = nullptr;
-
-        int res = sqlite3_prepare_v2(_db_handler, statement.c_str(), -1, &stmt, nullptr);
-        if (res != SQLITE_OK) {
-            std::cout << "Failed to prepare SQL statement : " << sqlite3_errmsg(_db_handler);
-            return false;
-        }
-
-        res = sqlite3_step(stmt);
-        while (res == SQLITE_ROW) {
-            callback(stmt);
-            res = sqlite3_step(stmt);
-        }
-
-        sqlite3_finalize(stmt);
-        return true;
-    }
+    void create_table();
+    bool query(const std::string &statement, DBQueryCallback callback);
 };
+
+}
 
 #endif // DATABASE_HPP
