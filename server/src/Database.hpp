@@ -2,6 +2,7 @@
 #define DATABASE_HPP
 
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,15 +14,7 @@ namespace zouipocar {
 
 class Database {
 public:
-    using DBQueryCallback = std::function<void (sqlite3_stmt*)>;
-
     Database();
-    ~Database() noexcept;
-
-    Database(const Database& other) = delete;
-    Database(Database&& other) = delete;
-    Database& operator=(const Database& other) = delete;
-    Database& operator=(Database&& other) = delete;
 
     // Return false if insertion fails, true otherwise.
     bool insert_fix(Fix fix);
@@ -40,10 +33,16 @@ public:
     std::optional<Fix> get_last_fix();
 
 private:
-    sqlite3 *_db_handler = nullptr;
+    struct Sqlite3Deleter {
+        void operator()(sqlite3* handle);
+    };
+    std::unique_ptr<sqlite3, Sqlite3Deleter> _handle;
+
     char *_errmsg = nullptr;
 
     void create_table();
+
+    using DBQueryCallback = std::function<void (sqlite3_stmt*)>;
     bool query(const std::string &statement, DBQueryCallback callback);
 };
 
