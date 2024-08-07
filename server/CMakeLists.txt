@@ -9,9 +9,24 @@ project(
     LANGUAGES CXX
 )
 
-include(cmake/src.cmake)
-
 option(ZOUIPOCAR_TESTS "Build unit tests" ON)
+
+set(
+    SRC
+    ${PROJECT_SOURCE_DIR}/src/Database.cpp
+    ${PROJECT_SOURCE_DIR}/src/Database.hpp
+    ${PROJECT_SOURCE_DIR}/src/Fix.cpp
+    ${PROJECT_SOURCE_DIR}/src/Fix.hpp
+    ${PROJECT_SOURCE_DIR}/src/HTTPServer.cpp
+    ${PROJECT_SOURCE_DIR}/src/HTTPServer.hpp
+    ${PROJECT_SOURCE_DIR}/src/tools.cpp
+    ${PROJECT_SOURCE_DIR}/src/tools.hpp
+    ${PROJECT_SOURCE_DIR}/src/UDP.cpp
+    ${PROJECT_SOURCE_DIR}/src/UDP.hpp
+    ${PROJECT_SOURCE_DIR}/external/httplib.cpp
+    ${PROJECT_SOURCE_DIR}/external/httplib.h
+    ${PROJECT_SOURCE_DIR}/external/json.hpp
+)
 
 add_library(zouipocar STATIC ${SRC})
 

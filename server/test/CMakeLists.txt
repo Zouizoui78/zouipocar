@@ -9,7 +9,7 @@ set(TEST_SRC
     TestUDP.cpp
 )
 
-add_executable(zouipocar-test ${SRC} ${TEST_SRC})
+add_executable(zouipocar-test ${TEST_SRC})
 
 target_include_directories(zouipocar-test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(zouipocar-test
