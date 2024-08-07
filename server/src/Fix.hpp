@@ -1,8 +1,9 @@
 #ifndef FIX_HPP
 #define FIX_HPP
 
-#include <stdint.h>
 #include <ctime>
+#include <stdint.h>
+#include <vector>
 
 namespace zouipocar {
 

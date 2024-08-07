@@ -1,6 +1,7 @@
 #include "constants.hpp"
 #include "UDP.hpp"
 
+#include <format>
 #include <iostream>
 #include <string.h> // For strerror()
 #include <unistd.h> // For close()
@@ -24,12 +25,13 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
     }
 
     _listen_buffer.resize(PACKET_SIZE);
+    listen(callback);
 }
 
 UDP::~UDP() {
+    _listen_thread_running = false;
     shutdown(_socket, SHUT_RDWR); // Interrupt blocking recvfrom.
     ::close(_socket);
-    _listen_thread_running = false;
 }
 
 void UDP::listen(UDPCallback callback) {

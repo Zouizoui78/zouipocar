@@ -9,13 +9,26 @@ namespace zouipocar {
 using json = nlohmann::json;
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
-HTTPServer::HTTPServer(std::unique_ptr<Database>&& db) :
+HTTPServer::HTTPServer(Database* db) :
     httplib::Server(),
-    _db(std::forward<std::unique_ptr<Database>>(db))
+    _db(db)
 {
     register_handlers();
     this->set_mount_point("/", "./www");
-    _first_fix = _db->get_first_fix();
+}
+
+void HTTPServer::update_last_fix(Fix&& fix) {
+    _last_fix = std::forward<Fix>(fix);
+    {
+        std::lock_guard lock(_cvm);
+        _cv_ready = true;
+    }
+    _cv.notify_all();
+
+    // Wait for the request handlers to acknowledge the notify
+    // by releasing the mutex in their threads.
+    std::lock_guard lock(_cvm);
+    _cv_ready = false;
 }
 
 void HTTPServer::register_handlers() {
@@ -23,8 +36,7 @@ void HTTPServer::register_handlers() {
     this->Get("/api/fix/last", std::bind(&HTTPServer::api_fix_last, this, _1, _2));
     this->Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
     this->Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
-
-    std::cout << "Registered HTTP server handlers\n";
+    this->Get("/api/pollfix", std::bind(&HTTPServer::api_poll_fix, this, _1, _2));
 }
 
 void HTTPServer::api_fix(const httplib::Request &req, httplib::Response &res) {
@@ -59,17 +71,12 @@ void HTTPServer::api_fix(const httplib::Request &req, httplib::Response &res) {
 }
 
 void HTTPServer::api_fix_first(const httplib::Request &req, httplib::Response &res) {
-    // Maybe the DB didn't contain a fix when the server was instantiated
-    // but contains one now.
-    if (!_first_fix.has_value()) {
-        _first_fix = _db->get_first_fix();
-    }
-
-    if (!_first_fix.has_value()) {
+    auto fix = _db->get_first_fix();
+    if (!fix.has_value()) {
         res.status = 404;
         return;
     }
-    res.set_content(json(*_first_fix).dump(), "application/json");
+    res.set_content(json(*fix).dump(), "application/json");
 }
 
 void HTTPServer::api_fix_last(const httplib::Request &req, httplib::Response &res) {
@@ -112,6 +119,13 @@ void HTTPServer::api_range(const httplib::Request &req, httplib::Response &res) 
     }
     else
         res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
+}
+
+void HTTPServer::api_poll_fix(const httplib::Request& req, httplib::Response& res) {
+    std::unique_lock lock(_cvm);
+    _cv.wait(lock, [this]{ return _cv_ready; });
+    lock.unlock();
+    res.set_content(json(_last_fix).dump(), "application/json");
 }
 
 }

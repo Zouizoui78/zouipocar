@@ -1,121 +1,49 @@
-// #include "ws/server_ws.hpp"
-#include "json.hpp"
+#include <signal.h>
 
+#include "constants.hpp"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
 #include "tools.hpp"
 #include "UDP.hpp"
 
-#include <csignal>
-
-using json = nlohmann::json;
-
-// using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
-
-#define HTTP_PORT 3001
-#define UDP_PORT 3002
-#define WEBSOCKET_PORT 3003
-
-#define PACKET_SIZE 15
-
-
-std::function<void (int)> handler;
-void signal_handler_caller(int signal) {
-    std::cout << "Received signal " << strsignal(signal) << std::endl;
-    handler(signal);
+std::function<void (int)> signal_handler;
+void c_signal_handler(int signal) {
+    signal_handler(signal);
 }
 
 int main(void)
 {
-    std::cout << "Program start\n";
-
-    signal(SIGINT, signal_handler_caller);
-    signal(SIGTERM, signal_handler_caller);
-
-    std::string db_path = "zouicar.sqlite";
-    Database db(db_path);
-    if (!db.is_open()) {
-        std::cout << "Failed to open database\n";
-        return 1;
+    for (int i = 0 ; i < NSIG ; i++) {
+        signal(i, c_signal_handler);
     }
 
-    // Default fix json
-    json last_fix = db.query_last_fix();
+    zouipocar::Database db;
+    auto last_fix = db.get_last_fix();
 
-    // Websocket setup    
-    // WsServer ws_server;
-    // ws_server.config.port = WEBSOCKET_PORT;
-    
-    // auto &echo = ws_server.endpoint["/"];
+    zouipocar::HTTPServer svr(&db);
 
-    // echo.on_open = [&last_fix](std::shared_ptr<WsServer::Connection> connection) {
-    //     json j = {
-    //         { "id", "fix" },
-    //         { "data", last_fix }
-    //     };
-    //     connection->send(j.dump());
-    // };
+    zouipocar::UDP udp(zouipocar::DEFAULT_PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
+        zouipocar::Fix fix(packet);
 
-    #ifdef DEBUG
-    uint32_t count = 0;
-    #endif
-
-    // UDP listener setup
-    UDP udp(UDP_PORT);
-    udp.start_listen([&](uint8_t *data, size_t size) {
-        if (size != PACKET_SIZE) {
-            std::cout << "Received invalid data.\n";
-            return;
-        }
-
-        json j = {
-            { "id", "fix" },
-            { "data", parse_packet(data) }
-        };
-
-        if (j["data"]["timestamp"] <= last_fix["timestamp"])
+        if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp)
             return;
 
-        // for (const auto &e : ws_server.get_connections()) {
-        //     e->send(j.dump());
-        // }
-
-        if (j["data"]["speed"] >= 5) {
-            db.insert_fix(j["data"]);
-            #ifdef DEBUG
-            std::cout << ++count << std::endl;
-            #endif
+        if (fix.speed >= 5) {
+            db.insert_fix(fix);
         }
-
-        last_fix = j["data"];
+        
+        last_fix = fix;
+        svr.update_last_fix(std::move(fix));
     });
 
-    // Start servers
-    // std::thread ws_thread([&ws_server]() {
-    //     ws_server.start([](unsigned short port) {
-    //         std::cout << "Websocket server listening on port " << port << std::endl;
-    //     });
-    // });
-
-    HTTPServer http(db_path);
-    std::thread http_thread([&http]() {
-        http.listen("0.0.0.0", HTTP_PORT);
-    });
-
-    // Signal handler
-    handler = [&](int signal) {
+    signal_handler = [&svr](int signal) {
+        std::cout << "Received signal " << strsignal(signal) << std::endl;
         if (signal == SIGINT || signal == SIGTERM) {
-            // ws_server.stop();
-            http.stop();
+            svr.stop();
         }
     };
-    
-    // Stop program
-    // ws_thread.join();
-    std::cout << "Stopped websocket server\n";
 
-    http_thread.join();
-    std::cout << "Stopped http server\n";
+    svr.listen("0.0.0.0", zouipocar::DEFAULT_PORT);
 
     return 0;
 }

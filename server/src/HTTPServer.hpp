@@ -1,6 +1,7 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
+#include <condition_variable>
 #include <memory>
 
 #include "Fix.hpp"
@@ -12,17 +13,26 @@ class Database;
 
 class HTTPServer : public httplib::Server {
 public:
-    HTTPServer(std::unique_ptr<Database>&& db);
+    // Doesn't take owernship of db.
+    HTTPServer(Database* db);
+
+    void update_last_fix(Fix&& fix);
 
 private:
-    std::unique_ptr<Database> _db;
-    std::optional<Fix> _first_fix;
+    Database* _db;
+    Fix _last_fix;
+
+    // Used to synchronize responses to requests to /api/pollfix
+    std::condition_variable _cv;
+    std::mutex _cvm;
+    bool _cv_ready = false;
 
     void register_handlers();
     void api_fix(const httplib::Request &req, httplib::Response &res);
     void api_fix_first(const httplib::Request &req, httplib::Response &res);
     void api_fix_last(const httplib::Request &req, httplib::Response &res);
     void api_range(const httplib::Request &req, httplib::Response &res);
+    void api_poll_fix(const httplib::Request &req, httplib::Response &res);
 };
 
 }
