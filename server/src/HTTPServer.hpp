@@ -14,7 +14,7 @@ class Database;
 class HTTPServer : public httplib::Server {
 public:
     // Doesn't take owernship of db.
-    HTTPServer(Database* db);
+    HTTPServer(std::string_view web_ui_path, Database* db);
 
     void update_last_fix(Fix&& fix);
 

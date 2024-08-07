@@ -22,7 +22,7 @@ int main(void)
 
     zouipocar::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
 
-    zouipocar::UDP udp(zouipocar::DEFAULT_PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
+    zouipocar::UDP udp(zouipocar::PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
         zouipocar::Fix fix(packet);
 
         if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp)
@@ -43,7 +43,7 @@ int main(void)
         }
     };
 
-    svr.listen("0.0.0.0", zouipocar::DEFAULT_PORT);
+    svr.listen("0.0.0.0", zouipocar::PORT);
 
     return 0;
 }

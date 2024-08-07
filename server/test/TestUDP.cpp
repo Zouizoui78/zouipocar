@@ -3,22 +3,20 @@
 
 #include <arpa/inet.h>
 
-TEST(TestUDP, test_receiver_callback) {
-    UDP udp(5000);
-    ASSERT_TRUE(udp.is_ok());
+using namespace zouipocar;
 
+TEST(TestUDP, test_receiver_callback) {
     bool callback_called = false;
     size_t received_bytes = 0;
-    udp.start_listen([&](uint8_t *data, size_t size) {
+    UDP udp(5000, [&](const std::vector<uint8_t>& data) {
         callback_called = true;
-        received_bytes = size;
+        received_bytes = data.size();
 
-        char *str = (char *)data;
-        printf("Received %ld bytes : %s\n", size, str);
+        const char *str = reinterpret_cast<const char*>(data.data());
+        printf("Received %ld bytes : %s\n", received_bytes, str);
     });
 
-    char data[10];
-    strcpy(data, "test_data");
+    std::string data("azertyuiopqsdf");
 
     int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in addr_in;
@@ -27,11 +25,11 @@ TEST(TestUDP, test_receiver_callback) {
     addr_in.sin_family = AF_INET;
     sockaddr *addr = reinterpret_cast<sockaddr *>(&addr_in);
 
-    int res = sendto(s, data, strlen(data) + 1, 0, addr, sizeof(addr_in));
+    int res = sendto(s, data.data(), data.size() + 1, 0, addr, sizeof(addr_in));
 
     usleep(1e3);
 
     ASSERT_NE(res, -1);
     ASSERT_TRUE(callback_called);
-    ASSERT_EQ(received_bytes, 10);
+    ASSERT_EQ(received_bytes, 15);
 }

@@ -3,18 +3,19 @@
 #include "json.hpp"
 
 using namespace std::placeholders;
+using namespace httplib;
 
 namespace zouipocar {
 
 using json = nlohmann::json;
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
-HTTPServer::HTTPServer(Database* db) :
-    httplib::Server(),
+HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db) :
+    Server(),
     _db(db)
 {
     register_handlers();
-    this->set_mount_point("/", "./www");
+    this->set_mount_point("/", std::string(web_ui_path));
 }
 
 void HTTPServer::update_last_fix(Fix&& fix) {
@@ -39,10 +40,10 @@ void HTTPServer::register_handlers() {
     this->Get("/api/pollfix", std::bind(&HTTPServer::api_poll_fix, this, _1, _2));
 }
 
-void HTTPServer::api_fix(const httplib::Request &req, httplib::Response &res) {
+void HTTPServer::api_fix(const Request &req, Response &res) {
     if (!req.has_param("date")) {
         res.set_content("Missing date parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
 
@@ -53,45 +54,45 @@ void HTTPServer::api_fix(const httplib::Request &req, httplib::Response &res) {
     }
     catch (std::invalid_argument &e) {
         res.set_content("Invalid date parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
     catch (std::out_of_range &e) {
         res.set_content("Out of range date parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
 
     auto fix = _db->get_fix(date);
     if (!fix.has_value()) {
-        res.status = 404;
+        res.status = StatusCode::NotFound_404;
         return;
     }
     res.set_content(json(*fix).dump(), "application/json");
 }
 
-void HTTPServer::api_fix_first(const httplib::Request &req, httplib::Response &res) {
+void HTTPServer::api_fix_first(const Request &req, Response &res) {
     auto fix = _db->get_first_fix();
     if (!fix.has_value()) {
-        res.status = 404;
+        res.status = StatusCode::NotFound_404;
         return;
     }
     res.set_content(json(*fix).dump(), "application/json");
 }
 
-void HTTPServer::api_fix_last(const httplib::Request &req, httplib::Response &res) {
+void HTTPServer::api_fix_last(const Request &req, Response &res) {
     auto fix = _db->get_last_fix();
     if (!fix.has_value()) {
-        res.status = 404;
+        res.status = StatusCode::NotFound_404;
         return;
     }
     res.set_content(json(*fix).dump(), "application/json");
 }
 
-void HTTPServer::api_range(const httplib::Request &req, httplib::Response &res) {
+void HTTPServer::api_range(const Request &req, Response &res) {
     if (!req.has_param("start") || !req.has_param("stop")) {
         res.set_content("Missing range's start and/or stop parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
 
@@ -103,25 +104,25 @@ void HTTPServer::api_range(const httplib::Request &req, httplib::Response &res) 
     }
     catch (std::invalid_argument &e) {
         res.set_content("Invalid range's start and/or stop parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
     catch (std::out_of_range &e) {
         res.set_content("Out of range range's start and/or stop parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
 
     if (start >= stop) {
         res.set_content("start parameter cannot be greater than stop parameter", "text/plain");
-        res.status = 400;
+        res.status = StatusCode::BadRequest_400;
         return;
     }
     else
         res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
 }
 
-void HTTPServer::api_poll_fix(const httplib::Request& req, httplib::Response& res) {
+void HTTPServer::api_poll_fix(const Request& req, Response& res) {
     std::unique_lock lock(_cvm);
     _cv.wait(lock, [this]{ return _cv_ready; });
     lock.unlock();

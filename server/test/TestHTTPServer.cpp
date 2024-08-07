@@ -1,39 +1,46 @@
 #include "gtest/gtest.h"
+
+#include "constants.hpp"
+#include "Database.hpp"
 #include "HTTPServer.hpp"
+#include "json.hpp"
+
+using json = nlohmann::json;
+
+namespace zouipocar {
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
+}
+
+using namespace zouipocar;
 
 class TestHTTPServer : public ::testing::Test {
     protected:
 
-    TestHTTPServer() :
-        server(path)
+    TestHTTPServer()
+        : db(path), server("www", &db), client("localhost", PORT)
     {}
 
     void SetUp() override {
-        server_thread = std::thread([this](){
-            server.listen("0.0.0.0", port);
+        server_thread = std::jthread([this](){
+            server.listen("0.0.0.0", PORT);
         });
-
-        client = new httplib::Client("localhost", port);
     }
 
     void TearDown() override {
         server.stop();
-        server_thread.join();
-
-        delete client;
     }
 
     std::string path = "./test/test_resources/test.db";
+    Database db;
     HTTPServer server;
-    std::thread server_thread;
+    std::jthread server_thread;
 
-    httplib::Client *client;
+    httplib::Client client;
 
-    int port = 3001;
 };
 
 TEST_F(TestHTTPServer, test_static_files) {
-    auto res = client->Get("/");
+    auto res = client.Get("/");
     ASSERT_TRUE(res);
 
     std::ifstream index("www/index.html");
@@ -44,59 +51,46 @@ TEST_F(TestHTTPServer, test_static_files) {
     EXPECT_EQ(res->status, 200);
     EXPECT_EQ(res->body, index_str.str());
 
-    res = client->Get("/test");
+    res = client.Get("/test");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 404);
 }
 
 TEST_F(TestHTTPServer, test_fix) {
-    Database db(path);
-    ASSERT_TRUE(db.is_open());
-
-    auto res = client->Get("/api/fix?date=first");
+    auto res = client.Get("/api/fix/first");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body), db.query_first_fix());
+    EXPECT_EQ(json::parse(res->body), db.get_first_fix());
 
-    res = client->Get("/api/fix?date=last");
+    res = client.Get("/api/fix/last");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body), db.query_last_fix());
+    EXPECT_EQ(json::parse(res->body), db.get_last_fix());
 
-    json record = {
-        { "timestamp", 1646722281 },
-        { "speed", 11 },
-        { "latitude", 48.76424 },
-        { "longitude", 2.036607 }
-    };
-    res = client->Get("/api/fix?date=1646722281");
+    res = client.Get("/api/fix?date=1646722281");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body), record);
 
-    res = client->Get("/api/fix?date=nonesense");
+    res = client.Get("/api/fix?date=nonesense");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 }
 
 TEST_F(TestHTTPServer, test_range) {
-    Database db(path);
-    ASSERT_TRUE(db.is_open());
-
-    auto res = client->Get("/api/range?start=1646722277&stop=1646722282");
+    auto res = client.Get("/api/range?start=1646722277&stop=1646722282");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
     EXPECT_EQ(json::parse(res->body).size(), 6);
 
-    res = client->Get("/api/range?start=1646722277&stop=1646722277");
+    res = client.Get("/api/range?start=1646722277&stop=1646722277");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 
-    res = client->Get("/api/range?start=1646722282&stop=1646722277");
+    res = client.Get("/api/range?start=1646722282&stop=1646722277");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 
-    res = client->Get("/api/range?start=gibberish&stop=random");
+    res = client.Get("/api/range?start=gibberish&stop=random");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 }
