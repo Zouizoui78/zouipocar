@@ -20,27 +20,3 @@ TEST(TestTools, test_str_to_time) {
         EXPECT_EQ(string_to_time(to_test, date_format), date_start + 86400 * (i - 1));
     }
 }
-
-TEST(TestTools, test_parse_packet) {
-    uint8_t speed = 123;
-    uint32_t time = 180210;
-    uint32_t date = 150422;
-    float lat = 48.931835;
-    float lon = 2.054971;
-
-    uint8_t output[15];
-    output[0] = speed;
-    memcpy(output + 1, &time, 3);
-    memcpy(output + 4, &date, 3);
-    memcpy(output + 7, &lat, 4);
-    memcpy(output + 11, &lon, 4);
-
-    nlohmann::json j = {
-        { "timestamp", 1650045730 },
-        { "speed", speed },
-        { "latitude", lat },
-        { "longitude", lon }
-    };
-
-    ASSERT_EQ(j, parse_packet(output));
-}

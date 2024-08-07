@@ -17,10 +17,10 @@ int main(void)
         signal(i, c_signal_handler);
     }
 
-    zouipocar::Database db;
+    zouipocar::Database db(zouipocar::DB_PATH);
     auto last_fix = db.get_last_fix();
 
-    zouipocar::HTTPServer svr(&db);
+    zouipocar::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
 
     zouipocar::UDP udp(zouipocar::DEFAULT_PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
         zouipocar::Fix fix(packet);
@@ -31,7 +31,7 @@ int main(void)
         if (fix.speed >= 5) {
             db.insert_fix(fix);
         }
-        
+
         last_fix = fix;
         svr.update_last_fix(std::move(fix));
     });

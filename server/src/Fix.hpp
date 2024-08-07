@@ -14,8 +14,8 @@ public:
 
     time_t timestamp = 0;
     int64_t speed = 0;
-    double latitude = 0;
-    double longitude = 0;
+    float latitude = 0;
+    float longitude = 0;
 };
 
 }

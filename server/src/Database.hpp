@@ -14,7 +14,7 @@ namespace zouipocar {
 
 class Database {
 public:
-    Database();
+    Database(std::string_view path);
 
     // Return false if insertion fails, true otherwise.
     bool insert_fix(Fix fix);
@@ -43,7 +43,9 @@ private:
     void create_table();
 
     using DBQueryCallback = std::function<void (sqlite3_stmt*)>;
-    bool query(const std::string &statement, DBQueryCallback callback);
+
+    // Return the number of affected rows
+    int query(const std::string &statement, DBQueryCallback callback);
 };
 
 }

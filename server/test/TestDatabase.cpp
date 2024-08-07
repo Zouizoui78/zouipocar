@@ -1,65 +1,62 @@
 #include "gtest/gtest.h"
 #include "Database.hpp"
+#include "test_tools.hpp"
 
-TEST(TestDatabase, test_file_creation) {
-    std::string path = std::string(std::getenv("TEST_OUTPUTS")) + "/test.db";
-    Database db(path);
+#include <filesystem>
 
-    ASSERT_TRUE(db.is_open());
-    ASSERT_TRUE(std::filesystem::exists(path));
-
-    std::filesystem::remove(path);
-}
+using namespace zouipocar;
+using namespace zouipocar_test;
 
 TEST(TestDatabase, test_insert) {
-    json j = {
-        { "timestamp", 1649577294 },
-        { "speed", 123 },
-        { "latitude", 15 },
-        { "longitude", 30 }
-    };
+    std::filesystem::path output_dir(std::getenv("TEST_OUTPUT_DIR"));
+    std::filesystem::path path(output_dir / "test.db");
+    std::filesystem::create_directory(output_dir);
+    Database* db = new Database(path.string());
 
-    std::string path = std::string(std::getenv("TEST_OUTPUTS")) + "/test.db";
-    Database db(path);
-    ASSERT_TRUE(db.is_open());
-    ASSERT_TRUE(db.insert_fix(j));
-    ASSERT_EQ(j, db.query_fix(1649577294));
+    Fix f;
+    f.timestamp = 1649577294;
+    f.speed = 123;
+    f.latitude = 15;
+    f.longitude =  30;
 
+    bool inserted = db->insert_fix(f);
+    auto queried = db->get_fix(1649577294);
+
+    ASSERT_TRUE(inserted);
+    compare_fixes(f, *queried);
+
+    delete db;
     std::filesystem::remove(path);
 }
 
 TEST(TestDatabase, test_query) {
     Database db("./test/test_resources/test.db");
-    ASSERT_TRUE(db.is_open());
 
-    json first_record = {
-        { "timestamp", 1646722255 },
-        { "speed", 5 },
-        { "latitude", 48.76503 },
-        { "longitude", 2.037482 }
-    };
+    Fix first_record;
+    first_record.timestamp = 1646722255;
+    first_record.speed = 5;
+    first_record.latitude = 48.76503;
+    first_record.longitude = 2.03748;
 
-    json last_record = {
-        { "timestamp", 1646722336 },
-        { "speed", 33 },
-        { "latitude", 48.763393 },
-        { "longitude", 2.036618 }
-    };
+    Fix last_record;
+    last_record.timestamp = 1646722336;
+    last_record.speed = 33;
+    last_record.latitude = 48.763393;
+    last_record.longitude = 2.03661;
 
-    json record = {
-        { "timestamp", 1646722281 },
-        { "speed", 11 },
-        { "latitude", 48.76424 },
-        { "longitude", 2.036607 }
-    };
+    Fix record;
+    record.timestamp = 1646722281;
+    record.speed = 11;
+    record.latitude = 48.76424;
+    record.longitude = 2.03660;
 
-    ASSERT_EQ(first_record, db.query_first_fix());
-    ASSERT_EQ(last_record, db.query_last_fix());
-    ASSERT_EQ(record, db.query_fix(1646722281));
+    compare_fixes(first_record, db.get_first_fix().value());
+    compare_fixes(last_record, db.get_last_fix().value());
+    compare_fixes(record, db.get_fix(1646722281).value());
 
-    json range = db.query_fix_range(1646722264, 1646722270);
+    std::vector<Fix> range = db.get_fix_range(1646722264, 1646722270);
     ASSERT_EQ(range.size(), 7);
 
-    ASSERT_TRUE(db.query_fix(1).is_null());
-    ASSERT_TRUE(db.query_fix_range(1, 50).is_null());
+    ASSERT_FALSE(db.get_fix(1).has_value());
+    ASSERT_EQ(db.get_fix_range(1, 50).size(), 0);
 }

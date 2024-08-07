@@ -1,4 +1,3 @@
-#include "constants.hpp"
 #include "Database.hpp"
 
 #include <format>
@@ -7,11 +6,11 @@
 
 namespace zouipocar {
 
-Database::Database() {
+Database::Database(std::string_view path) {
     sqlite3* handle;
-    int res = sqlite3_open(DB_PATH.data(), &handle);
-    if (res != SQLITE_OK || _handle == nullptr) {
-        throw std::runtime_error(std::format("Failed to open database file {} : {}", DB_PATH, sqlite3_errmsg(handle)));
+    int res = sqlite3_open(path.data(), &handle);
+    if (res != SQLITE_OK || handle == nullptr) {
+        throw std::runtime_error(std::format("Failed to open database file {} : {}", path, sqlite3_errmsg(handle)));
     }
 
     _handle = std::unique_ptr<sqlite3, Sqlite3Deleter>(handle);
@@ -25,7 +24,7 @@ Database::Database() {
 }
 
 void Database::create_table() {
-    std::string statement = "CREATE TABLE IF NOT EXISTS fixes (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL);";
+    std::string statement = "CREATE TABLE IF NOT EXISTS zoui (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL);";
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr, &_errmsg);
     if (res != SQLITE_OK) {
         throw std::runtime_error(std::format("Failed to create table zoui : {}", _errmsg));
@@ -50,15 +49,14 @@ bool Database::insert_fix(Fix fix) {
 
 std::optional<Fix> Database::get_fix(time_t date) {
     Fix fix;
-
-    bool ok = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &fix](sqlite3_stmt *stmt) {
+    int n = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
         fix.latitude = sqlite3_column_double(stmt, 2);
         fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
-    if (!ok) {
+    if (n == 0) {
         return std::nullopt;
     }
 
@@ -68,7 +66,7 @@ std::optional<Fix> Database::get_fix(time_t date) {
 std::vector<Fix> Database::get_fix_range(time_t start, time_t end) {
     std::vector<Fix> ret;
 
-    bool ok = query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {
+    query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {
         Fix f;
         f.timestamp = sqlite3_column_int64(stmt, 0);
         f.speed = sqlite3_column_int64(stmt, 1);
@@ -82,14 +80,14 @@ std::vector<Fix> Database::get_fix_range(time_t start, time_t end) {
 
 std::optional<Fix> Database::get_first_fix() {
     Fix fix;
-    bool ok = query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
+    int n = query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
         fix.latitude = sqlite3_column_double(stmt, 2);
         fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
-    if (!ok) {
+    if (n == 0) {
         return std::nullopt;
     }
 
@@ -98,43 +96,45 @@ std::optional<Fix> Database::get_first_fix() {
 
 std::optional<Fix> Database::get_last_fix() {
     Fix fix;
-    bool ok = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
+    int n = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
         fix.latitude = sqlite3_column_double(stmt, 2);
         fix.longitude = sqlite3_column_double(stmt, 3);
     });
 
-    if (!ok) {
+    if (n == 0) {
         return std::nullopt;
     }
 
     return fix;
 }
 
-bool Database::query(const std::string &statement, DBQueryCallback callback) {
+int Database::query(const std::string &statement, DBQueryCallback callback) {
     sqlite3_stmt *stmt = nullptr;
 
     int res = sqlite3_prepare_v2(_handle.get(), statement.c_str(), -1, &stmt, nullptr);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to prepare SQL statement : " << sqlite3_errmsg(_handle.get());
+        std::cout << "Failed to prepare SQL statement : " << sqlite3_errmsg(_handle.get()) << std::endl;
         return false;
     }
 
     res = sqlite3_step(stmt);
+    int count = 0;
     while (res == SQLITE_ROW) {
         callback(stmt);
         res = sqlite3_step(stmt);
+        ++count;
     }
 
     sqlite3_finalize(stmt);
-    return true;
+    return count;
 }
 
 void Database::Sqlite3Deleter::operator()(sqlite3* handle) {
     int res = sqlite3_close(handle);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to close database " << DB_PATH << std::endl;
+        std::cout << "Failed to close database\n";
     }
 }
 

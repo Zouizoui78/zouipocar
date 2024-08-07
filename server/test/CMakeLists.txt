@@ -1,9 +1,11 @@
 find_package(GTest CONFIG REQUIRED)
 include(GoogleTest)
 
-include(${PROJECT_SOURCE_DIR}/cmake/src.cmake)
 set(TEST_SRC
+    test_tools.cpp
+    test_tools.hpp
     TestDatabase.cpp
+    TestFix.cpp
     TestHTTPServer.cpp
     TestTools.cpp
     TestUDP.cpp
