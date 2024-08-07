@@ -69,12 +69,12 @@ std::vector<Fix> Database::get_fix_range(time_t start, time_t end) {
     std::vector<Fix> ret;
 
     bool ok = query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {
-        ret.emplace_back(
-            sqlite3_column_int64(stmt, 0),
-            sqlite3_column_int64(stmt, 1),
-            sqlite3_column_double(stmt, 2),
-            sqlite3_column_double(stmt, 3)
-        );
+        Fix f;
+        f.timestamp = sqlite3_column_int64(stmt, 0);
+        f.speed = sqlite3_column_int64(stmt, 1);
+        f.latitude = sqlite3_column_double(stmt, 2);
+        f.longitude = sqlite3_column_double(stmt, 3);
+        ret.push_back(f);
     });
 
     return ret;

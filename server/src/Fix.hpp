@@ -2,12 +2,15 @@
 #define FIX_HPP
 
 #include <stdint.h>
-#include <time.h>
+#include <ctime>
 
 namespace zouipocar {
 
 struct Fix {
 public:
+    Fix() = default;
+    Fix(const std::vector<uint8_t>& packet);
+
     time_t timestamp = 0;
     int64_t speed = 0;
     double latitude = 0;
