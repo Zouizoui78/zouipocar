@@ -10,12 +10,24 @@ namespace zouipocar {
 using json = nlohmann::json;
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
-HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db) :
-    Server(),
-    _db(db)
+HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db)
+    : _db(db)
 {
     register_handlers();
-    this->set_mount_point("/", std::string(web_ui_path));
+    svr.set_mount_point("/", std::string(web_ui_path));
+}
+
+bool HTTPServer::listen(const std::string& addr, int port) {
+    return svr.listen(addr, port);
+}
+
+void HTTPServer::stop() {
+    {
+        std::lock_guard lock(_cvm);
+        _cv_stopping = true;
+    }
+    _cv.notify_all();
+    svr.stop();
 }
 
 void HTTPServer::update_last_fix(const Fix& fix) {
@@ -28,11 +40,11 @@ void HTTPServer::update_last_fix(const Fix& fix) {
 }
 
 void HTTPServer::register_handlers() {
-    this->Get("/api/fix/first", std::bind(&HTTPServer::api_fix_first, this, _1, _2));
-    this->Get("/api/fix/last", std::bind(&HTTPServer::api_fix_last, this, _1, _2));
-    this->Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
-    this->Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
-    this->Get("/api/pollfix", std::bind(&HTTPServer::api_poll_fix, this, _1, _2));
+    svr.Get("/api/fix/first", std::bind(&HTTPServer::api_fix_first, this, _1, _2));
+    svr.Get("/api/fix/last", std::bind(&HTTPServer::api_fix_last, this, _1, _2));
+    svr.Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
+    svr.Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
+    svr.Get("/api/pollfix", std::bind(&HTTPServer::api_poll_fix, this, _1, _2));
 }
 
 void HTTPServer::api_fix(const Request &req, Response &res) {
@@ -126,7 +138,7 @@ void HTTPServer::api_range(const Request &req, Response &res) {
 
 void HTTPServer::api_poll_fix(const Request& req, Response& res) {
     std::unique_lock lock(_cvm);
-    _cv.wait(lock, [this]{ return _cv_ready; });
+    _cv.wait(lock, [this]{ return _cv_ready || _cv_stopping; });
     _cv_ready = false;
     lock.unlock();
     res.set_content(json(_last_fix).dump(), "application/json");

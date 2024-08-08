@@ -51,7 +51,7 @@ void UDP::listen(UDPCallback callback) {
             else if (size != PACKET_SIZE && _listen_thread_running == true) {
                 std::cout << std::format("Received invalid packet, size = {} instead of {}", size, PACKET_SIZE) << std::endl;
             }
-            else {
+            else if (_listen_thread_running) {
                 callback(_listen_buffer);
             }
         }
