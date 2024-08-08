@@ -1,11 +1,10 @@
 #include "constants.hpp"
 #include "UDP.hpp"
 
+#include <arpa/inet.h>
 #include <format>
 #include <iostream>
 #include <string.h> // For strerror()
-#include <unistd.h> // For close()
-#include <arpa/inet.h>
 
 namespace zouipocar {
 

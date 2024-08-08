@@ -3,7 +3,6 @@
 #include "constants.hpp"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
-#include "tools.hpp"
 #include "UDP.hpp"
 
 std::function<void (int)> signal_handler;

@@ -2,7 +2,6 @@
 #define HTTPSERVER_HPP
 
 #include <condition_variable>
-#include <memory>
 
 #include "Fix.hpp"
 #include "httplib.h"

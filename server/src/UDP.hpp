@@ -1,8 +1,6 @@
 #ifndef UDP_HPP
 #define UDP_HPP
 
-#include <sys/socket.h>
-#include <netinet/in.h> // For sockaddr_in
 #include <functional>
 #include <thread>
 
