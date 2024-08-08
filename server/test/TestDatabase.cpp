@@ -29,7 +29,7 @@ TEST(TestDatabase, test_insert) {
     std::filesystem::remove(path);
 }
 
-TEST(TestDatabase, test_query) {
+TEST(TestDatabase, test_get_fix) {
     Database db("./test/test_resources/test.db");
 
     Fix first_record;
@@ -50,13 +50,37 @@ TEST(TestDatabase, test_query) {
     record.latitude = 48.76424;
     record.longitude = 2.03660;
 
-    compare_fixes(first_record, db.get_first_fix().value());
-    compare_fixes(last_record, db.get_last_fix().value());
     compare_fixes(record, db.get_fix(1646722281).value());
+    ASSERT_FALSE(db.get_fix(1).has_value());
+}
 
+TEST(TestDatabase, test_get_first_fix) {
+    Database db("./test/test_resources/test.db");
+
+    Fix fix;
+    fix.timestamp = 1646722255;
+    fix.speed = 5;
+    fix.latitude = 48.76503;
+    fix.longitude = 2.03748;
+
+    compare_fixes(fix, db.get_first_fix().value());
+}
+
+TEST(TestDatabase, test_get_last_fix) {
+    Database db("./test/test_resources/test.db");
+
+    Fix fix;
+    fix.timestamp = 1646722336;
+    fix.speed = 33;
+    fix.latitude = 48.763393;
+    fix.longitude = 2.03661;
+
+    compare_fixes(fix, db.get_last_fix().value());
+}
+
+TEST(TestDatabase, test_get_fix_range) {
+    Database db("./test/test_resources/test.db");
     std::vector<Fix> range = db.get_fix_range(1646722264, 1646722270);
     ASSERT_EQ(range.size(), 7);
-
-    ASSERT_FALSE(db.get_fix(1).has_value());
     ASSERT_EQ(db.get_fix_range(1, 50).size(), 0);
 }
