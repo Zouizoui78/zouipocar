@@ -1,3 +1,4 @@
+#include <iostream>
 #include <signal.h>
 
 #include "constants.hpp"
@@ -39,6 +40,7 @@ int main(void)
         std::cout << "Received signal " << strsignal(signal) << std::endl;
         if (signal == SIGINT || signal == SIGTERM) {
             svr.stop();
+            std::cout << "Waiting for HTTP server to stop...\n";
         }
     };
 

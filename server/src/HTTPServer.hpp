@@ -15,13 +15,14 @@ public:
     // Doesn't take owernship of db.
     HTTPServer(std::string_view web_ui_path, Database* db);
 
+    // Answer pending requests to /api/pollfix with the fix
     void update_last_fix(const Fix& fix);
 
 private:
     Database* _db;
     Fix _last_fix;
 
-    // Used to synchronize responses to requests to /api/pollfix
+    // Objects used to synchronize responses to requests to /api/pollfix
     std::condition_variable _cv;
     std::mutex _cvm;
     bool _cv_ready = false;

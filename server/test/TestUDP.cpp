@@ -11,9 +11,7 @@ TEST(TestUDP, test_receiver_callback) {
     UDP udp(5000, [&](const std::vector<uint8_t>& data) {
         callback_called = true;
         received_bytes = data.size();
-
         const char *str = reinterpret_cast<const char*>(data.data());
-        printf("Received %ld bytes : %s\n", received_bytes, str);
     });
 
     std::string data("azertyuiopqsdf");

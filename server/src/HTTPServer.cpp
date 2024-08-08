@@ -25,11 +25,6 @@ void HTTPServer::update_last_fix(const Fix& fix) {
         _cv_ready = true;
     }
     _cv.notify_all();
-
-    // Wait for the request handlers to acknowledge the notify
-    // by releasing the mutex in their threads.
-    std::lock_guard lock(_cvm);
-    _cv_ready = false;
 }
 
 void HTTPServer::register_handlers() {
@@ -132,6 +127,7 @@ void HTTPServer::api_range(const Request &req, Response &res) {
 void HTTPServer::api_poll_fix(const Request& req, Response& res) {
     std::unique_lock lock(_cvm);
     _cv.wait(lock, [this]{ return _cv_ready; });
+    _cv_ready = false;
     lock.unlock();
     res.set_content(json(_last_fix).dump(), "application/json");
 }

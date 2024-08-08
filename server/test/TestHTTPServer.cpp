@@ -4,6 +4,7 @@
 #include "Database.hpp"
 #include "HTTPServer.hpp"
 #include "json.hpp"
+#include "test_tools.hpp"
 
 using json = nlohmann::json;
 
@@ -101,4 +102,28 @@ TEST_F(TestHTTPServer, test_range) {
     res = client.Get("/api/range?start=gibberish&stop=random");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
+}
+
+TEST_F(TestHTTPServer, test_poll_fix) {
+    httplib::Result res;
+
+    int n_threads = 3;
+    std::thread thread([this, &res]{
+        res = client.Get("/api/pollfix");
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    Fix f;
+    f.timestamp = 1649577294;
+    f.speed = 123;
+    f.latitude = 15;
+    f.longitude =  30;
+
+    server.update_last_fix(f);
+    thread.join();
+
+    ASSERT_TRUE(res);
+    Fix received = json::parse(res->body);
+    zouipocar_test::compare_fixes(f, received);
 }
