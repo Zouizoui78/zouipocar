@@ -120,7 +120,7 @@ TEST_F(TestHTTPServer, test_poll_fix) {
     f.latitude = 15;
     f.longitude =  30;
 
-    server.update_last_fix(f);
+    server.send_fix(f);
     thread.join();
 
     ASSERT_TRUE(res);

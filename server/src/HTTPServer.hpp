@@ -19,7 +19,7 @@ public:
     void stop();
 
     // Answer pending requests to /api/pollfix with the fix
-    void update_last_fix(const Fix& fix);
+    void send_fix(const Fix& fix);
 
 private:
     Database* _db;
@@ -29,8 +29,8 @@ private:
     // Objects used to synchronize responses to requests to /api/pollfix
     std::condition_variable _cv;
     std::mutex _cvm;
-    bool _cv_ready = false;
-    bool _cv_stopping = false;
+    std::atomic_int _cvid = 0;
+    std::atomic_int _cvcid = -1;
 
     void register_handlers();
     void api_fix(const httplib::Request &req, httplib::Response &res);
