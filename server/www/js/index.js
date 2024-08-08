@@ -56,69 +56,61 @@ map.on('movestart', e => {
     }
 });
 
-let s = connect();
-setInterval(() => {
-    if (s.readyState != WebSocket.CONNECTING && s.readyState != WebSocket.OPEN) {
-        s = connect();
+poll_fix();
+
+function poll_fix() {
+    ajax.get("/api/pollfix", null, onFix, poll_fix_error, null);
+}
+
+function onFix(json_fix) {
+    fix = JSON.parse(json_fix);
+    console.log(fix);
+
+    pos = [
+        fix.latitude,
+        fix.longitude
+    ];
+
+    if (!initDone) {
+        var car = L.icon({
+            iconUrl: '/images/car.png',
+            iconSize:     [markerWidth, markerHeight],
+            iconAnchor:   [markerWidth / 2, markerHeight],
+        });
+
+        // Car marker setup
+        popupOptions = {};
+        if (mobileCheck())
+            popupOptions = { 'className': 'bigger-popup' };
+        marker = L.marker(pos, { icon: car }).addTo(map)
+            .on("click", e => {
+                makePopupContent(marker, pos);
+            })
+            .bindPopup("", popupOptions);
+
+        initDone = true;
     }
-}, 1000);
 
-function connect() {
-    //Socket setup
-    let socket = new WebSocket("wss://example.com/websocket");
+    if(auto){
+        userPan = false;
+        center(map, pos, defaultZoom);
+        userPan = true;
+    }
 
-    socket.onmessage = e => {
-        j = JSON.parse(e.data);
+    marker.setLatLng(pos);
 
-        if (j.id != "fix") {
-            return;
-        }
+    if(fix.speed < 5){
+        document.getElementById('speed').innerHTML = '0';
+    }
+    else{
+        document.getElementById('speed').innerHTML = fix.speed;
+    }
 
-        fix = j.data;
-        console.log(fix);
+    setTimeout(poll_fix);
+}
 
-        pos = [
-            fix.latitude,
-            fix.longitude
-        ];
-
-        if (!initDone) {
-            var car = L.icon({
-                iconUrl: '/images/car.png',
-                iconSize:     [markerWidth, markerHeight],
-                iconAnchor:   [markerWidth / 2, markerHeight],
-            });
-
-            // Car marker setup
-            popupOptions = {};
-            if (mobileCheck())
-                popupOptions = { 'className': 'bigger-popup' };
-            marker = L.marker(pos, { icon: car }).addTo(map)
-                .on("click", e => {
-                    makePopupContent(marker, pos);
-                })
-                .bindPopup("", popupOptions);
-
-            initDone = true;
-        }
-
-        if(auto){
-            userPan = false;
-            center(map, pos, defaultZoom);
-            userPan = true;
-        }
-
-        marker.setLatLng(pos);
-
-        if(fix.speed < 5){
-            document.getElementById('speed').innerHTML = '0';
-        }
-        else{
-            document.getElementById('speed').innerHTML = fix.speed;
-        }
-    };
-
-    return socket;
+function poll_fix_error() {
+    setTimeout(poll_fix, 1000);
 }
 
 function updateUserMarker(marker) {
