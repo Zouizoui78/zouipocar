@@ -15,7 +15,7 @@ public:
     // Doesn't take owernship of db.
     HTTPServer(std::string_view web_ui_path, Database* db);
 
-    void update_last_fix(Fix&& fix);
+    void update_last_fix(const Fix& fix);
 
 private:
     Database* _db;

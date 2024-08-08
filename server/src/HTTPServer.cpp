@@ -18,10 +18,10 @@ HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db) :
     this->set_mount_point("/", std::string(web_ui_path));
 }
 
-void HTTPServer::update_last_fix(Fix&& fix) {
-    _last_fix = std::forward<Fix>(fix);
+void HTTPServer::update_last_fix(const Fix& fix) {
     {
         std::lock_guard lock(_cvm);
+        _last_fix = fix;
         _cv_ready = true;
     }
     _cv.notify_all();
@@ -118,8 +118,15 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         res.status = StatusCode::BadRequest_400;
         return;
     }
-    else
-        res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
+
+    std::vector<Fix> fixes = _db->get_fix_range(start, stop);
+
+    if (fixes.empty()) {
+        res.status = StatusCode::NotFound_404;
+        return;
+    }
+
+    res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
 }
 
 void HTTPServer::api_poll_fix(const Request& req, Response& res) {

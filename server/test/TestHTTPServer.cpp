@@ -71,6 +71,10 @@ TEST_F(TestHTTPServer, test_fix) {
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
 
+    res = client.Get("/api/fix?date=123");
+    ASSERT_TRUE(res);
+    EXPECT_EQ(res->status, 404);
+
     res = client.Get("/api/fix?date=nonesense");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
@@ -81,6 +85,10 @@ TEST_F(TestHTTPServer, test_range) {
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
     EXPECT_EQ(json::parse(res->body).size(), 6);
+
+    res = client.Get("/api/range?start=123&stop=1234");
+    ASSERT_TRUE(res);
+    EXPECT_EQ(res->status, 404);
 
     res = client.Get("/api/range?start=1646722277&stop=1646722277");
     ASSERT_TRUE(res);

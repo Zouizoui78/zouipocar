@@ -32,7 +32,7 @@ int main(void)
         }
 
         last_fix = fix;
-        svr.update_last_fix(std::move(fix));
+        svr.update_last_fix(fix);
     });
 
     signal_handler = [&svr](int signal) {
