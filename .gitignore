@@ -96,3 +96,4 @@ _deps
 build
 *.sqlite
 *.db
+*.zip
