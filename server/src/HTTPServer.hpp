@@ -24,7 +24,7 @@ public:
 private:
     Database* _db;
     httplib::Server svr;
-    Fix _last_fix;
+    std::optional<Fix> _last_fix;
 
     void register_handlers();
     void api_fix(const httplib::Request &req, httplib::Response &res);

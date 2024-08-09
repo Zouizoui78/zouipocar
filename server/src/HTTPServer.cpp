@@ -77,7 +77,7 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
-    auto fix = _db->get_last_fix();
+    auto fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
     if (!fix.has_value()) {
         res.status = StatusCode::NotFound_404;
         return;
