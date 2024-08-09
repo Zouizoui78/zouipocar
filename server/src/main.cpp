@@ -33,14 +33,13 @@ int main(void)
         }
 
         last_fix = fix;
-        svr.update_fix(fix);
+        svr.send_fix(fix);
     });
 
     signal_handler = [&svr](int signal) {
         std::cout << "Received signal " << strsignal(signal) << std::endl;
         if (signal == SIGINT || signal == SIGTERM) {
             svr.stop();
-            std::cout << "Waiting for HTTP server to stop...\n";
         }
     };
 

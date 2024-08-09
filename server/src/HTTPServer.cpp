@@ -22,11 +22,17 @@ bool HTTPServer::listen(const std::string& addr, int port) {
 }
 
 void HTTPServer::stop() {
+    std::lock_guard lock(_cvm);
+    _cvcid = _cvid.load();
+    _cv.notify_all();
     svr.stop();
 }
 
-void HTTPServer::update_fix(const Fix& fix) {
+void HTTPServer::send_fix(const Fix& fix) {
+    std::lock_guard lock(_cvm);
+    _cvcid = _cvid++;
     _last_fix = fix;
+    _cv.notify_all();
 }
 
 void HTTPServer::register_handlers() {
@@ -34,6 +40,7 @@ void HTTPServer::register_handlers() {
     svr.Get("/api/fix/last", std::bind(&HTTPServer::api_fix_last, this, _1, _2));
     svr.Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
     svr.Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
+    svr.Get("/api/event/fix", std::bind(&HTTPServer::api_event_fix, this, _1, _2));
 }
 
 void HTTPServer::api_fix(const Request &req, Response &res) {
@@ -77,7 +84,7 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
-    auto fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
+    auto fix = get_last_fix();
     if (!fix.has_value()) {
         res.status = StatusCode::NotFound_404;
         return;
@@ -123,6 +130,34 @@ void HTTPServer::api_range(const Request &req, Response &res) {
     }
 
     res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
+}
+
+void HTTPServer::api_event_fix(const httplib::Request &req, httplib::Response &res) {
+    res.set_chunked_content_provider(
+        "text/event-stream",
+        [this](size_t size, DataSink& sink) {
+            wait_event_fix(sink);
+            return true;
+        }
+    );
+}
+
+void HTTPServer::wait_event_fix(DataSink& sink) {
+    std::unique_lock lock(_cvm);
+    int id = _cvid;
+    _cv.wait(lock, [this, id]{ return id == _cvcid; });
+
+    auto fix = get_last_fix();
+    if (!fix.has_value()) {
+        return;
+    }
+
+    std::string msg = "data: " + json(fix.value()).dump() + "\n\n";
+    sink.write(msg.data(), msg.size());
+}
+
+std::optional<Fix> HTTPServer::get_last_fix() {
+    return _last_fix.has_value() ? _last_fix : _db->get_last_fix();
 }
 
 }

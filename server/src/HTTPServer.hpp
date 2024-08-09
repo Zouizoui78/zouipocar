@@ -18,19 +18,29 @@ public:
     bool listen(const std::string& addr, int port);
     void stop();
 
-    // Answer pending requests to /api/pollfix with the fix
-    void update_fix(const Fix& fix);
+    // Send fix to clients that have subscribed to /api/event/fix
+    void send_fix(const Fix& fix);
 
 private:
     Database* _db;
     httplib::Server svr;
     std::optional<Fix> _last_fix;
 
+    // Objects used to synchronize sending fixes to clients
+    std::condition_variable _cv;
+    std::mutex _cvm;
+    std::atomic_int _cvid = 0;
+    std::atomic_int _cvcid = -1;
+
     void register_handlers();
     void api_fix(const httplib::Request &req, httplib::Response &res);
     void api_fix_first(const httplib::Request &req, httplib::Response &res);
     void api_fix_last(const httplib::Request &req, httplib::Response &res);
     void api_range(const httplib::Request &req, httplib::Response &res);
+    void api_event_fix(const httplib::Request &req, httplib::Response &res);
+
+    void wait_event_fix(httplib::DataSink& sink);
+    std::optional<Fix> get_last_fix();
 };
 
 }

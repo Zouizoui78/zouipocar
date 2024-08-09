@@ -56,11 +56,11 @@ map.on('movestart', e => {
     }
 });
 
-poll_fix();
-setInterval(poll_fix, 1000);
+ajax.get("/api/fix/last", null, onFix);
 
-function poll_fix() {
-    ajax.get("/api/fix/last", null, onFix);
+const ev = new EventSource("api/event/fix");
+ev.onmessage = function(e) {
+    onFix(e.data);
 }
 
 function onFix(json_fix) {
