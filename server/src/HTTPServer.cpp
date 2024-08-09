@@ -126,6 +126,9 @@ void HTTPServer::api_range(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_event_fix(const httplib::Request &req, httplib::Response &res) {
+    // https://serverfault.com/a/801629
+    res.set_header("X-Accel-Buffering", "no"); // Disable response buffering
+    res.set_header("Cache-Control", "no-cache"); // Disable response caching
     res.set_chunked_content_provider(
         "text/event-stream",
         [this](size_t size, DataSink& sink) {
