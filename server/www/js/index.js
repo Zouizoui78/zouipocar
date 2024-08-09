@@ -22,7 +22,6 @@ centerButton.addEventListener('click', () => {
 // Map setup
 mapOptions = {
     attributionControl: false,
-    center: house,
     zoom: defaultZoom,
     tap: false
 }

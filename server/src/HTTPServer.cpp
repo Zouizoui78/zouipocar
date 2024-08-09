@@ -122,13 +122,6 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         return;
     }
 
-    std::vector<Fix> fixes = _db->get_fix_range(start, stop);
-
-    if (fixes.empty()) {
-        res.status = StatusCode::NotFound_404;
-        return;
-    }
-
     res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
 }
 
