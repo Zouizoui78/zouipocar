@@ -57,9 +57,10 @@ map.on('movestart', e => {
 });
 
 poll_fix();
+setInterval(poll_fix, 1000);
 
 function poll_fix() {
-    ajax.get("/api/pollfix", null, onFix, poll_fix_error, null);
+    ajax.get("/api/fix/last", null, onFix);
 }
 
 function onFix(json_fix) {
@@ -105,12 +106,6 @@ function onFix(json_fix) {
     else{
         document.getElementById('speed').innerHTML = fix.speed;
     }
-
-    setTimeout(poll_fix);
-}
-
-function poll_fix_error() {
-    setTimeout(poll_fix, 1000);
 }
 
 function updateUserMarker(marker) {

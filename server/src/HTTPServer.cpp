@@ -22,21 +22,11 @@ bool HTTPServer::listen(const std::string& addr, int port) {
 }
 
 void HTTPServer::stop() {
-    {
-        std::lock_guard lock(_cvm);
-        _cvcid = _cvid.load();
-    }
-    _cv.notify_all();
     svr.stop();
 }
 
-void HTTPServer::send_fix(const Fix& fix) {
-    {
-        std::lock_guard lock(_cvm);
-        _last_fix = fix;
-        _cvcid = _cvid++;
-    }
-    _cv.notify_all();
+void HTTPServer::update_fix(const Fix& fix) {
+    _last_fix = fix;
 }
 
 void HTTPServer::register_handlers() {
@@ -44,7 +34,6 @@ void HTTPServer::register_handlers() {
     svr.Get("/api/fix/last", std::bind(&HTTPServer::api_fix_last, this, _1, _2));
     svr.Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
     svr.Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
-    svr.Get("/api/pollfix", std::bind(&HTTPServer::api_poll_fix, this, _1, _2));
 }
 
 void HTTPServer::api_fix(const Request &req, Response &res) {
@@ -134,14 +123,6 @@ void HTTPServer::api_range(const Request &req, Response &res) {
     }
 
     res.set_content(json(_db->get_fix_range(start, stop)).dump(), "application/json");
-}
-
-void HTTPServer::api_poll_fix(const Request& req, Response& res) {
-    std::unique_lock lock(_cvm);
-    int id = _cvid;
-    _cv.wait(lock, [this, id]{ return _cvcid == id; });
-    lock.unlock();
-    res.set_content(json(_last_fix).dump(), "application/json");
 }
 
 }

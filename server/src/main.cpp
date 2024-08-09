@@ -25,17 +25,15 @@ int main(void)
     zouipocar::UDP udp(zouipocar::PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
         zouipocar::Fix fix(packet);
 
-        #ifndef DEBUG
         if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp)
             return;
-        #endif
 
         if (fix.speed >= 5) {
             db.insert_fix(fix);
         }
 
         last_fix = fix;
-        svr.send_fix(fix);
+        svr.update_fix(fix);
     });
 
     signal_handler = [&svr](int signal) {

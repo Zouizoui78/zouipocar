@@ -31,51 +31,45 @@ elem.addEventListener("changeDate", e => {
     start = e.detail.date.getTime() / 1000;
     stop = start + 86399;
     console.log(start, stop);
-
-    url = 'https://example.com/api/range?start=' + start + '&stop=' + stop;
-    var request = new XMLHttpRequest();
-    request.open('GET', url);  // `false` makes the request synchronous
-    request.send();
-
-    request.onreadystatechange = e => {
-        if (request.readyState == 4 && request.status == 200) {
-            query = JSON.parse(request.responseText);
-            if (!query)
-                return;
-
-            console.log("query length = " + query.length);
-            polypoints = []
-            distance = 0;
-            time = 0;
-            console.log("first timestamp = " + query[0].timestamp);
-            console.log("last timestamp = " + query[query.length - 1].timestamp);
-            for (k in query) {
-                if (k > 0) {
-                    distance += distanceInKmBetweenEarthCoordinates(query[k-1].latitude, query[k-1].longitude, query[k].latitude, query[k].longitude);
-                    time_diff = query[k].timestamp - query[k-1].timestamp;
-                    if (time_diff < 600)
-                        time += time_diff;
-                    else
-                        ++time;
-                }
-                q = query[k];
-                polypoints.push([q.latitude, q.longitude]);
-            }
-
-            speed = distance / time * 3600;
-            time = new Date(time * 1000);
-
-            document.getElementById("distance").innerHTML = distance.toFixed(2);
-            document.getElementById("duration").innerHTML = time.toISOString().split("T")[1].split(".")[0];
-            document.getElementById("speed").innerHTML = speed.toFixed(0);
-
-            if (line != undefined)
-                line.remove(map);
-            line = L.polyline(polypoints).addTo(map);
-            map.fitBounds(line.getBounds());
-        }
-    }
+    ajax.get('/api/range?start=' + start + '&stop=' + stop, null, update);
 });
+
+function update(body) {
+    query = JSON.parse(body);
+    if (!query)
+        return;
+
+    console.log("query length = " + query.length);
+    polypoints = []
+    distance = 0;
+    time = 0;
+    console.log("first timestamp = " + query[0].timestamp);
+    console.log("last timestamp = " + query[query.length - 1].timestamp);
+    for (k in query) {
+        if (k > 0) {
+            distance += distanceInKmBetweenEarthCoordinates(query[k-1].latitude, query[k-1].longitude, query[k].latitude, query[k].longitude);
+            time_diff = query[k].timestamp - query[k-1].timestamp;
+            if (time_diff < 600)
+                time += time_diff;
+            else
+                ++time;
+        }
+        q = query[k];
+        polypoints.push([q.latitude, q.longitude]);
+    }
+
+    speed = distance / time * 3600;
+    time = new Date(time * 1000);
+
+    document.getElementById("distance").innerHTML = distance.toFixed(2);
+    document.getElementById("duration").innerHTML = time.toISOString().split("T")[1].split(".")[0];
+    document.getElementById("speed").innerHTML = speed.toFixed(0);
+
+    if (line != undefined)
+        line.remove(map);
+    line = L.polyline(polypoints).addTo(map);
+    map.fitBounds(line.getBounds());
+}
 
 function degreesToRadians(degrees) {
   return degrees * Math.PI / 180;

@@ -38,7 +38,6 @@ target_link_libraries(zouipocar PRIVATE SQLite::SQLite3)
 add_executable(zouipocar_exe src/main.cpp)
 
 target_link_libraries(zouipocar_exe zouipocar)
-target_compile_options(zouipocar_exe PRIVATE $<$<CONFIG:Debug>:-DDEBUG>$<$<CONFIG:Release>:-DRELEASE>)
 
 set_property(TARGET zouipocar_exe PROPERTY OUTPUT_NAME zouipocar)
 
