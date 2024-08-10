@@ -47,7 +47,7 @@ bool Database::insert_fix(Fix fix) {
     return true;
 }
 
-std::optional<Fix> Database::get_fix(time_t date) {
+std::optional<Fix> Database::get_fix(uint32_t date) {
     Fix fix;
     int n = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
@@ -63,7 +63,7 @@ std::optional<Fix> Database::get_fix(time_t date) {
     return fix;
 }
 
-std::vector<Fix> Database::get_fix_range(time_t start, time_t end) {
+std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
     std::vector<Fix> ret;
 
     query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {

@@ -1,4 +1,6 @@
 #include "gtest/gtest.h"
+
+#include "../../common/common_constants.h"
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
@@ -14,7 +16,7 @@ TEST(TestUDP, test_receiver_callback) {
         const char *str = reinterpret_cast<const char*>(data.data());
     });
 
-    std::string data("azertyuiopqsdf");
+    std::string data("azertyuiopqs");
 
     int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in addr_in;
@@ -29,5 +31,5 @@ TEST(TestUDP, test_receiver_callback) {
 
     ASSERT_NE(res, -1);
     ASSERT_TRUE(callback_called);
-    ASSERT_EQ(received_bytes, 15);
+    ASSERT_EQ(received_bytes, ZOUIPOCAR_PACKET_SIZE);
 }

@@ -1,4 +1,5 @@
 #include "at.h"
+#include "../../common/common_constants.h"
 #include "constants.h"
 #include "gps.h"
 #include "interrupt.h"
@@ -8,9 +9,9 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <stdio.h>
 #include <string.h>
 
-#define PACKET_SIZE 15
 #define WAIT_FAIL 1000
 
 int main(void) {
@@ -93,8 +94,11 @@ int main(void) {
             _delay_ms(WAIT_FAIL);
     }
 
+    char port[5];
+    snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
+
     char rmc[80];
-    uint8_t packet[PACKET_SIZE];
+    uint8_t packet[ZOUIPOCAR_PACKET_SIZE];
     uint8_t connection_lost_sms_sent = 0;
     uint8_t trying_to_connect_sms_sent = 0;
     uint8_t connected_sms_sent = 0;
@@ -121,7 +125,7 @@ int main(void) {
             // Here we should be in a state from
             // which we can establish connection.
 
-            udp_open(SERVER, SERVER_PORT);
+            udp_open(SERVER, port);
             _delay_ms(1000);
             ip_status = get_ip_status();
         }
@@ -138,10 +142,10 @@ int main(void) {
         }
 
         if (process_rmc(rmc, packet) == AT_OK) {
-            udp_send(packet, PACKET_SIZE);
+            udp_send(packet, ZOUIPOCAR_PACKET_SIZE);
         }
         memset(rmc, 0, 80);
-        memset(packet, 0, PACKET_SIZE);
+        memset(packet, 0, ZOUIPOCAR_PACKET_SIZE);
 
         _delay_ms(1000);
     }

@@ -51,7 +51,7 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
     }
 
     std::string date_param = req.get_param_value("date");
-    time_t date = 0;
+    uint32_t date = 0;
     try {
         date = std::stol(date_param);
     }
@@ -99,8 +99,8 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         return;
     }
 
-    time_t start = 0;
-    time_t stop = 0;
+    uint32_t start = 0;
+    uint32_t stop = 0;
     try {
         start = std::stol(req.get_param_value("start"));
         stop = std::stol(req.get_param_value("stop"));

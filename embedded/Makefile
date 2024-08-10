@@ -20,7 +20,7 @@ TARGET=$(BUILDDIR)/$(TARGETNAME)
 
 SRCDIR=src
 SRCEXT=.c
-SRC=at.c bit.c gps.c interrupt.c main.c mc60.c pin.c uart.c
+SRC=at.c bit.c gps.c interrupt.c main.c mc60.c pin.c time_utils.c uart.c
 
 OBJDIR=$(BUILDDIR)/obj
 OBJ=$(SRC:%$(SRCEXT)=$(OBJDIR)/%.o)
@@ -67,7 +67,7 @@ $(TARGET).elf: $(OBJ)
 $(OBJDIR)/%.o: $(SRCDIR)/%$(SRCEXT)
 	@echo $(MSG_COMPILING) $<
 	@mkdir -p $(OBJDIR)
-	@$(CC) $(CFLAGS)	 -c $< -o $@
+	@$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEPS)
 

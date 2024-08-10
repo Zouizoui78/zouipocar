@@ -19,8 +19,6 @@ set(
     ${PROJECT_SOURCE_DIR}/src/Fix.hpp
     ${PROJECT_SOURCE_DIR}/src/HTTPServer.cpp
     ${PROJECT_SOURCE_DIR}/src/HTTPServer.hpp
-    ${PROJECT_SOURCE_DIR}/src/tools.cpp
-    ${PROJECT_SOURCE_DIR}/src/tools.hpp
     ${PROJECT_SOURCE_DIR}/src/UDP.cpp
     ${PROJECT_SOURCE_DIR}/src/UDP.hpp
     ${PROJECT_SOURCE_DIR}/external/httplib.cpp

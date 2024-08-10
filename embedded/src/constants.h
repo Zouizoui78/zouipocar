@@ -7,6 +7,5 @@
 #define APN "apn.com"
 #define PHONE "123456789"
 #define SERVER "example.com"
-#define SERVER_PORT "5555"
 
 #endif // CONSTANTS_H

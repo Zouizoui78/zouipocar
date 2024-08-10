@@ -20,11 +20,11 @@ public:
     bool insert_fix(Fix fix);
 
     // Return the fix if found, std::nullopt otherwise.
-    std::optional<Fix> get_fix(time_t date);
+    std::optional<Fix> get_fix(uint32_t date);
 
     // Return a vector containing the fixes if the range is valid,
     // and an empty vector otherwise.
-    std::vector<Fix> get_fix_range(time_t start, time_t end);
+    std::vector<Fix> get_fix_range(uint32_t start, uint32_t end);
 
     // Return first fix if it exists, std::nullopt otherwise.
     std::optional<Fix> get_first_fix();

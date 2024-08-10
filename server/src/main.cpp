@@ -1,6 +1,7 @@
 #include <iostream>
 #include <signal.h>
 
+#include "../../common/common_constants.h"
 #include "constants.hpp"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
@@ -22,7 +23,7 @@ int main(void)
 
     zouipocar::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
 
-    zouipocar::UDP udp(zouipocar::PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
+    zouipocar::UDP udp(ZOUIPOCAR_PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
         zouipocar::Fix fix(packet);
 
         if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp)
@@ -43,7 +44,7 @@ int main(void)
         }
     };
 
-    svr.listen("0.0.0.0", zouipocar::PORT);
+    svr.listen("0.0.0.0", ZOUIPOCAR_PORT);
 
     return 0;
 }

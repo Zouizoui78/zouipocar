@@ -1,4 +1,7 @@
+#include "../../common/common_constants.h"
 #include "gps.h"
+#include "time_utils.h"
+#include "return_codes.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -11,10 +14,10 @@ int process_rmc(char *rmc, uint8_t *output) {
     if (token == NULL)
         return AT_GPS_FAIL_PARSE;
 
-    token = strtok(NULL, delim); // Timestamp
-    uint32_t timestamp = strtol(token, &end, 10);
-    if (token == NULL || timestamp == 0)
-        return AT_GPS_FAIL_TIMESTAMP;
+    token = strtok(NULL, delim); // Time
+    uint32_t time = strtol(token, &end, 10);
+    if (token == NULL || time == 0)
+        return AT_GPS_FAIL_TIME;
 
     token = strtok(NULL, delim); // Validity
     if (token == NULL || strcmp(token, "V") == 0)
@@ -62,11 +65,12 @@ int process_rmc(char *rmc, uint8_t *output) {
     if (date == 0)
         return AT_GPS_FAIL_DATE;
 
-    output[0] = speed;
-    memcpy(output + 1, &timestamp, 3);
-    memcpy(output + 4, &date, 3);
-    memcpy(output + 7, &lat, 4);
-    memcpy(output + 11, &longitude, 4);
+    uint32_t timestamp = time_from_gps(time, date);
+
+    memcpy(output + ZOUIPOCAR_TIMESTAMP_OFFSET, &timestamp, ZOUIPOCAR_TIMESTAMP_SIZE);
+    memcpy(output + ZOUIPOCAR_LATITUDE_OFFSET, &lat, ZOUIPOCAR_LATITUDE_SIZE);
+    memcpy(output + ZOUIPOCAR_LONGITUDE_OFFSET, &longitude, ZOUIPOCAR_LONGITUDE_SIZE);
+    memcpy(output + ZOUIPOCAR_SPEED_OFFSET, &speed, ZOUIPOCAR_SPEED_SIZE);
 
     return AT_OK;
 }

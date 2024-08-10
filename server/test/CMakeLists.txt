@@ -7,7 +7,6 @@ set(TEST_SRC
     TestDatabase.cpp
     TestFix.cpp
     TestHTTPServer.cpp
-    TestTools.cpp
     TestUDP.cpp
 )
 

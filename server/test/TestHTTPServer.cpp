@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "constants.hpp"
+#include "../../common/common_constants.h"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
 #include "json.hpp"
@@ -18,12 +18,12 @@ class TestHTTPServer : public ::testing::Test {
     protected:
 
     TestHTTPServer()
-        : db(path), server("www", &db), client("localhost", PORT)
+        : db(path), server("www", &db), client("localhost", ZOUIPOCAR_PORT)
     {}
 
     void SetUp() override {
         server_thread = std::jthread([this](){
-            server.listen("0.0.0.0", PORT);
+            server.listen("0.0.0.0", ZOUIPOCAR_PORT);
         });
     }
 

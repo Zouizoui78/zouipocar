@@ -1,4 +1,4 @@
-#include "constants.hpp"
+#include "../../common/common_constants.h"
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
@@ -23,7 +23,7 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
         throw std::runtime_error("Failed to bind UDP socket");
     }
 
-    _listen_buffer.resize(PACKET_SIZE);
+    _listen_buffer.resize(ZOUIPOCAR_PACKET_SIZE);
     listen(callback);
 }
 
@@ -44,12 +44,19 @@ void UDP::listen(UDPCallback callback) {
 
         _listen_thread_running = true;
         while (_listen_thread_running) {
-            ssize_t size = recvfrom(_socket, _listen_buffer.data(), PACKET_SIZE, 0, reinterpret_cast<sockaddr*>(&from), &fromlen);
+            ssize_t size = recvfrom(
+                _socket,
+                _listen_buffer.data(),
+                ZOUIPOCAR_PACKET_SIZE,
+                0,
+                reinterpret_cast<sockaddr*>(&from),
+                &fromlen
+            );
             if (size == -1) {
                 std::cout << "UDP : Failed to receive data : " << strerror(errno) << std::endl;
             }
-            else if (size != PACKET_SIZE && _listen_thread_running == true) {
-                std::cout << std::format("Received invalid packet, size = {} instead of {}", size, PACKET_SIZE) << std::endl;
+            else if (size != ZOUIPOCAR_PACKET_SIZE && _listen_thread_running == true) {
+                std::cout << std::format("Received invalid packet, size = {} instead of {}", size, ZOUIPOCAR_PACKET_SIZE) << std::endl;
             }
             else if (_listen_thread_running) {
                 callback(_listen_buffer);
