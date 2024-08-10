@@ -70,6 +70,8 @@ int main(void) {
             _delay_ms(WAIT_FAIL);
     }
 
+    send_sms(PHONE, "GPS time synced");
+
     res = -1;
     while (res != AT_OK) {
         res = enable_epo();
