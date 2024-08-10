@@ -141,7 +141,14 @@ void HTTPServer::api_event_fix(const httplib::Request &req, httplib::Response &r
 void HTTPServer::wait_event_fix(DataSink& sink) {
     std::unique_lock lock(_cvm);
     int id = _cvid;
-    _cv.wait(lock, [this, id]{ return id == _cvcid; });
+
+    while (id != _cvcid && sink.is_writable()) {
+        _cv.wait_for(lock, std::chrono::milliseconds(100));
+    }
+
+    if (!sink.is_writable()) {
+        return;
+    }
 
     auto fix = get_last_fix();
     if (!fix.has_value()) {
