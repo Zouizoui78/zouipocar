@@ -1,7 +1,7 @@
 #ifndef FIX_HPP
 #define FIX_HPP
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 namespace zouipocar {

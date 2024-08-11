@@ -1,6 +1,7 @@
 #ifndef DATABASE_HPP
 #define DATABASE_HPP
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -22,15 +23,15 @@ public:
     // Return the fix if found, std::nullopt otherwise.
     std::optional<Fix> get_fix(uint32_t date);
 
-    // Return a vector containing the fixes if the range is valid,
-    // and an empty vector otherwise.
-    std::vector<Fix> get_fix_range(uint32_t start, uint32_t end);
-
     // Return first fix if it exists, std::nullopt otherwise.
     std::optional<Fix> get_first_fix();
 
     // Return latest fix if it exists, std::nullopt otherwise.
     std::optional<Fix> get_last_fix();
+
+    // Return a vector containing the fixes if the range is valid,
+    // and an empty vector otherwise.
+    std::vector<Fix> get_fix_range(uint32_t start, uint32_t end);
 
 private:
     struct Sqlite3Deleter {
@@ -42,12 +43,11 @@ private:
 
     void create_table();
 
-    using DBQueryCallback = std::function<void (sqlite3_stmt*)>;
-
-    // Return the number of affected rows
-    int query(const std::string &statement, DBQueryCallback callback);
+    // Return the number of affected rows.
+    template <typename T>
+    int query(const std::string &statement, T&& callback);
 };
 
 }
 
-#endif // DATABASE_HPP
+#endif

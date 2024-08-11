@@ -1,7 +1,11 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
+#include <atomic>
 #include <condition_variable>
+#include <mutex>
+#include <optional>
+#include <string>
 
 #include "Fix.hpp"
 #include "httplib.h"
@@ -18,15 +22,14 @@ public:
     bool listen(const std::string& addr, int port);
     void stop();
 
-    // Send fix to clients that have subscribed to /api/event/fix
-    void send_fix(const Fix& fix);
+    void send_fix_event(const Fix& fix);
 
 private:
     Database* _db;
     httplib::Server svr;
     std::optional<Fix> _last_fix;
 
-    // Objects used to synchronize sending fixes to clients
+    // Objects used to synchronize sending fixes to clients.
     std::condition_variable _cv;
     std::mutex _cvm;
     std::atomic_int _cvid = 0;
@@ -41,9 +44,11 @@ private:
 
     // Return false if sink is not writable or if there is no data to send.
     bool wait_event_fix(httplib::DataSink& sink);
+
+    // Return _last_fix if it has a value, Database::get_last_fix() otherwise.
     std::optional<Fix> get_last_fix();
 };
 
 }
 
-#endif // HTTPSERVER_HPP
+#endif

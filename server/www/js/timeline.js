@@ -8,7 +8,7 @@ elem.addEventListener("changeDate", e => {
     const start = e.detail.date.getTime() / 1000;
     const stop = start + 86399;
     console.log(start, stop);
-    ajax.get('/api/range?start=' + start + '&stop=' + stop, null, update);
+    ajax.get('api/range?start=' + start + '&stop=' + stop, null, update);
 });
 
 function update(body) {

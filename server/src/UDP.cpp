@@ -2,9 +2,9 @@
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
+#include <cstring>
 #include <format>
 #include <iostream>
-#include <string.h> // For strerror()
 
 namespace zouipocar {
 

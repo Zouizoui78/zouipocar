@@ -20,9 +20,7 @@ class ZouipocarMap {
             attributionControl: false
         }
 
-        const tilesOptions = {
-            // maxZoom: 20
-        }
+        const tilesOptions = {}
 
         if (utils.isClientMobile()) {
             mapOptions.zoomSnap = 0;
@@ -53,7 +51,7 @@ class ZouipocarMap {
 
     showHouseMarker(housePos) {
         const houseIcon = L.icon({
-            iconUrl: '/images/house.png',
+            iconUrl: 'images/house.png',
             iconSize: this.#markerSize,
             iconAnchor: this.#markerAnchor,
         });
@@ -62,7 +60,7 @@ class ZouipocarMap {
 
     #showCarMarker(pos) {
         const carIcon = L.icon({
-            iconUrl: '/images/car.png',
+            iconUrl: 'images/car.png',
             iconSize: this.#markerSize,
             iconAnchor: this.#markerAnchor,
         });
@@ -79,10 +77,10 @@ class ZouipocarMap {
 
     #center(pos){
         const currentZoom = this.map.getZoom();
-        if(currentZoom < this.#defaultZoom){
+        if (currentZoom < this.#defaultZoom) {
             this.map.setView(pos, this.#defaultZoom, { animate: false });
         }
-        else{
+        else {
             this.map.setView(pos, currentZoom, { animate: false });
         }
     }
@@ -101,7 +99,7 @@ class ZouipocarMap {
         });
 
         this.map.on('movestart', e => {
-            if(this.#userPanning){
+            if (this.#userPanning) {
                 this.#tracking = false;
                 trackButton.disabled = false;
                 trackButton.src = "images/location_gray.png";

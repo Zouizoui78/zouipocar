@@ -1,8 +1,10 @@
 #ifndef UDP_HPP
 #define UDP_HPP
 
+#include <cstdint>
 #include <functional>
 #include <thread>
+#include <vector>
 
 namespace zouipocar {
 
@@ -29,4 +31,4 @@ private:
 
 }
 
-#endif // UDP
+#endif

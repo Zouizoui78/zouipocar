@@ -35,9 +35,7 @@ class TestHTTPServer : public ::testing::Test {
     Database db;
     HTTPServer server;
     std::jthread server_thread;
-
     httplib::Client client;
-
 };
 
 TEST_F(TestHTTPServer, test_static_files) {

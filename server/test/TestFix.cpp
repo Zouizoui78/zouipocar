@@ -2,11 +2,13 @@
 #include "Fix.cpp"
 #include "test_tools.hpp"
 
+#include <cstdint>
+#include <vector>
+
 using namespace zouipocar;
 using namespace zouipocar_test;
 
 TEST(TestFix, test_parse_packet) {
-    std::cout << sizeof(uint32_t) << std::endl;
     uint32_t timestamp = 1723276072;
     float lat = 48.931835;
     float lon = 2.054971;

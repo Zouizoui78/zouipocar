@@ -32,11 +32,7 @@ void Database::create_table() {
 }
 
 bool Database::insert_fix(Fix fix) {
-    std::string statement = "INSERT INTO zoui VALUES(";
-    statement += std::to_string(fix.timestamp) + ",";
-    statement += std::to_string(fix.speed) + ",";
-    statement += std::to_string(fix.latitude) + ",";
-    statement += std::to_string(fix.longitude) + ");";
+    std::string statement = std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp, fix.speed, fix.latitude, fix.longitude);
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr, &_errmsg);
 
     if (res != SQLITE_OK) {
@@ -49,7 +45,7 @@ bool Database::insert_fix(Fix fix) {
 
 std::optional<Fix> Database::get_fix(uint32_t date) {
     Fix fix;
-    int n = query("SELECT * FROM zoui WHERE timestamp=" + std::to_string(date), [this, &fix](sqlite3_stmt *stmt) {
+    int n = query(std::format("SELECT * FROM zoui WHERE timestamp={};", date), [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
         fix.latitude = sqlite3_column_double(stmt, 2);
@@ -61,21 +57,6 @@ std::optional<Fix> Database::get_fix(uint32_t date) {
     }
 
     return fix;
-}
-
-std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
-    std::vector<Fix> ret;
-
-    query("SELECT * FROM zoui WHERE timestamp BETWEEN " + std::to_string(start) + " AND " + std::to_string(end), [this, &ret](sqlite3_stmt *stmt) {
-        Fix f;
-        f.timestamp = sqlite3_column_int64(stmt, 0);
-        f.speed = sqlite3_column_int64(stmt, 1);
-        f.latitude = sqlite3_column_double(stmt, 2);
-        f.longitude = sqlite3_column_double(stmt, 3);
-        ret.push_back(f);
-    });
-
-    return ret;
 }
 
 std::optional<Fix> Database::get_first_fix() {
@@ -110,7 +91,23 @@ std::optional<Fix> Database::get_last_fix() {
     return fix;
 }
 
-int Database::query(const std::string &statement, DBQueryCallback callback) {
+std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
+    std::vector<Fix> ret;
+
+    query(std::format("SELECT * FROM zoui WHERE timestamp BETWEEN {} AND {};", start, end), [this, &ret](sqlite3_stmt *stmt) {
+        Fix f;
+        f.timestamp = sqlite3_column_int64(stmt, 0);
+        f.speed = sqlite3_column_int64(stmt, 1);
+        f.latitude = sqlite3_column_double(stmt, 2);
+        f.longitude = sqlite3_column_double(stmt, 3);
+        ret.push_back(f);
+    });
+
+    return ret;
+}
+
+template <typename T>
+int Database::query(const std::string &statement, T&& callback) {
     sqlite3_stmt *stmt = nullptr;
 
     int res = sqlite3_prepare_v2(_handle.get(), statement.c_str(), -1, &stmt, nullptr);

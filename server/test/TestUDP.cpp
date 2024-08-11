@@ -4,6 +4,8 @@
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
+#include <cstdint>
+#include <vector>
 
 using namespace zouipocar;
 

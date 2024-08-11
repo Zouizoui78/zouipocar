@@ -28,7 +28,7 @@ void HTTPServer::stop() {
     svr.stop();
 }
 
-void HTTPServer::send_fix(const Fix& fix) {
+void HTTPServer::send_fix_event(const Fix& fix) {
     std::lock_guard lock(_cvm);
     _cvcid = _cvid++;
     _last_fix = fix;
@@ -94,7 +94,7 @@ void HTTPServer::api_fix_last(const Request &req, Response &res) {
 
 void HTTPServer::api_range(const Request &req, Response &res) {
     if (!req.has_param("start") || !req.has_param("stop")) {
-        res.set_content("Missing range's start and/or stop parameter", "text/plain");
+        res.set_content("Missing start and/or stop parameter", "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -106,18 +106,18 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         stop = std::stol(req.get_param_value("stop"));
     }
     catch (std::invalid_argument &e) {
-        res.set_content("Invalid range's start and/or stop parameter", "text/plain");
+        res.set_content("Invalid start and/or stop parameter", "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
     catch (std::out_of_range &e) {
-        res.set_content("Out of range range's start and/or stop parameter", "text/plain");
+        res.set_content("Out of range start and/or stop parameter", "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
 
     if (start >= stop) {
-        res.set_content("start parameter cannot be greater than stop parameter", "text/plain");
+        res.set_content("start parameter must be strictly less than stop parameter", "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -126,9 +126,10 @@ void HTTPServer::api_range(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_event_fix(const httplib::Request &req, httplib::Response &res) {
+    // These two headers should ensure that no buffering gets in the stream's way.
     // https://serverfault.com/a/801629
-    res.set_header("X-Accel-Buffering", "no"); // Disable response buffering
-    res.set_header("Cache-Control", "no-cache"); // Disable response caching
+    res.set_header("X-Accel-Buffering", "no");
+    res.set_header("Cache-Control", "no-cache");
     res.set_chunked_content_provider(
         "text/event-stream",
         [this](size_t size, DataSink& sink) {
@@ -142,8 +143,8 @@ bool HTTPServer::wait_event_fix(DataSink& sink) {
     std::unique_lock lock(_cvm);
     int id = _cvid;
 
-    // We have to check whether the stream is writable here
-    // otherwise the thread handling it would hang forever
+    // We have to check whether the stream is writable here,
+    // otherwise the thread would hang forever
     // after the client has disconnected.
     while (id != _cvcid && sink.is_writable()) {
         _cv.wait_for(lock, std::chrono::seconds(1));
@@ -158,7 +159,7 @@ bool HTTPServer::wait_event_fix(DataSink& sink) {
         return false;
     }
 
-    // The server-sent event spec says that an unnamed event message
+    // The "server-sent events" spec says that an unnamed event message
     // must start with "data:" and that any event must end with an empty line
     // for the client to handle it.
     // This is to allow messages with multiple lines.

@@ -41,10 +41,10 @@ function onFix(json_fix) {
 }
 
 function setSpeed(speed) {
-    if (speed < 5){
+    if (speed < 5) {
         document.getElementById('speed').innerHTML = '0';
     }
-    else{
+    else {
         document.getElementById('speed').innerHTML = speed;
     }
 }

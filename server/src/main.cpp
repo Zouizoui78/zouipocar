@@ -1,9 +1,11 @@
+#include <csignal>
+#include <cstring>
 #include <iostream>
-#include <signal.h>
 
 #include "../../common/common_constants.h"
 #include "constants.hpp"
 #include "Database.hpp"
+#include "Fix.hpp"
 #include "HTTPServer.hpp"
 #include "UDP.hpp"
 
@@ -26,15 +28,17 @@ int main(void)
     zouipocar::UDP udp(ZOUIPOCAR_PORT, [&last_fix, &db, &svr](const std::vector<uint8_t>& packet) {
         zouipocar::Fix fix(packet);
 
-        if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp)
+        if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp) {
             return;
+        }
 
+        // Don't store fix in DB if the tracker is not (or barely) moving.
         if (fix.speed >= 5) {
             db.insert_fix(fix);
         }
 
         last_fix = fix;
-        svr.send_fix(fix);
+        svr.send_fix_event(fix);
     });
 
     signal_handler = [&svr](int signal) {

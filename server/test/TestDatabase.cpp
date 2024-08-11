@@ -3,6 +3,7 @@
 #include "test_tools.hpp"
 
 #include <filesystem>
+#include <vector>
 
 using namespace zouipocar;
 using namespace zouipocar_test;
