@@ -6,7 +6,7 @@ html,body,#map {
     position: relative;
 }
 
-#centerButton {
+#trackButton {
     position: absolute;
     bottom: 20px;
     right: 20px;
