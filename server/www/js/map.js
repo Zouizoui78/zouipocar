@@ -119,7 +119,13 @@ class ZouipocarMap {
         const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + pos[0] + '&lon=' + pos[1];
         ajax.get(url, null, body => {
             const parsed = JSON.parse(body).address;
-            let addr = parsed.road + ", " + parsed.postcode + " " + parsed.town + ", " + parsed.country;
+
+            let town = parsed.town;
+            if (!town) {
+                town = parsed.village;
+            }
+
+            let addr = parsed.road + ", " + parsed.postcode + " " + town + ", " + parsed.country;
             if (parsed.house_number) {
                 addr = parsed.house_number + " " + addr;
             }
