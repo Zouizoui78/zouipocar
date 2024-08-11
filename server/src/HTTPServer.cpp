@@ -132,31 +132,38 @@ void HTTPServer::api_event_fix(const httplib::Request &req, httplib::Response &r
     res.set_chunked_content_provider(
         "text/event-stream",
         [this](size_t size, DataSink& sink) {
-            wait_event_fix(sink);
-            return true;
+            // Stream is canceled if this returns false.
+            return wait_event_fix(sink);
         }
     );
 }
 
-void HTTPServer::wait_event_fix(DataSink& sink) {
+bool HTTPServer::wait_event_fix(DataSink& sink) {
     std::unique_lock lock(_cvm);
     int id = _cvid;
 
+    // We have to check whether the stream is writable here
+    // otherwise the thread handling it would hang forever
+    // after the client has disconnected.
     while (id != _cvcid && sink.is_writable()) {
         _cv.wait_for(lock, std::chrono::seconds(1));
     }
 
     if (!sink.is_writable()) {
-        return;
+        return false;
     }
 
     auto fix = get_last_fix();
     if (!fix.has_value()) {
-        return;
+        return false;
     }
 
-    std::string msg = "data: " + json(fix.value()).dump() + "\n\n";
-    sink.write(msg.data(), msg.size());
+    // The server-sent event spec says that an unnamed event message
+    // must start with "data:" and that any event must end with an empty line
+    // for the client to handle it.
+    // This is to allow messages with multiple lines.
+    sink.os << "data:" << json(fix.value()).dump() << "\n\n";
+    return true;
 }
 
 std::optional<Fix> HTTPServer::get_last_fix() {

@@ -39,7 +39,8 @@ private:
     void api_range(const httplib::Request &req, httplib::Response &res);
     void api_event_fix(const httplib::Request &req, httplib::Response &res);
 
-    void wait_event_fix(httplib::DataSink& sink);
+    // Return false if sink is not writable or if there is no data to send.
+    bool wait_event_fix(httplib::DataSink& sink);
     std::optional<Fix> get_last_fix();
 };
 
