@@ -125,6 +125,9 @@ class ZouipocarMap {
             if (!town) {
                 town = parsed.village;
             }
+            if (!town) {
+                town = parsed.city;
+            }
 
             let addr = parsed.road + ", " + parsed.postcode + " " + town + ", " + parsed.country;
             if (parsed.house_number) {
