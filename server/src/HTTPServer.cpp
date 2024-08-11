@@ -143,7 +143,7 @@ void HTTPServer::wait_event_fix(DataSink& sink) {
     int id = _cvid;
 
     while (id != _cvcid && sink.is_writable()) {
-        _cv.wait_for(lock, std::chrono::milliseconds(100));
+        _cv.wait_for(lock, std::chrono::seconds(1));
     }
 
     if (!sink.is_writable()) {
