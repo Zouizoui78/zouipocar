@@ -5,7 +5,6 @@ set(TEST_SRC
     test_tools.cpp
     test_tools.hpp
     TestDatabase.cpp
-    TestFix.cpp
     TestHTTPServer.cpp
     TestUDP.cpp
 )

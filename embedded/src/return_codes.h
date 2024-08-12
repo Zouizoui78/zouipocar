@@ -37,4 +37,4 @@ typedef enum ATRetCode {
     AT_SMS_SEND_FAIL
 } ATRetCode;
 
-#endif // RETCODES
+#endif

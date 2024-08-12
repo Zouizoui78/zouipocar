@@ -6,11 +6,13 @@
 #include <thread>
 #include <vector>
 
+#include "Fix.hpp"
+
 namespace zouipocar {
 
 class UDP {
 public:
-    using UDPCallback = std::function<void (const std::vector<uint8_t>&)>;
+    using UDPCallback = std::function<void (const fix::Fix &)>;
 
     UDP(uint16_t port, UDPCallback callback);
     ~UDP();

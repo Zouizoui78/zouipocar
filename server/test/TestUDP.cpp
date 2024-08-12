@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
+#include "test_tools.hpp"
 
-#include "../../common/common_constants.h"
+#include "Fix.hpp"
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
@@ -8,17 +9,21 @@
 #include <vector>
 
 using namespace zouipocar;
+using namespace zouipocar_test;
 
 TEST(TestUDP, test_receiver_callback) {
     bool callback_called = false;
-    size_t received_bytes = 0;
-    UDP udp(5000, [&](const std::vector<uint8_t>& data) {
+    fix::Fix received;
+    UDP udp(5000, [&](const fix::Fix& fix) {
         callback_called = true;
-        received_bytes = data.size();
-        const char *str = reinterpret_cast<const char*>(data.data());
+        received = fix;
     });
 
-    std::string data("azertyuiopqs");
+    fix::Fix fix;
+    fix.timestamp = 1723276072;
+    fix.latitude = 48.931835;
+    fix.longitude = 2.054971;
+    fix.speed = 123;
 
     int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in addr_in;
@@ -27,11 +32,11 @@ TEST(TestUDP, test_receiver_callback) {
     addr_in.sin_family = AF_INET;
     sockaddr *addr = reinterpret_cast<sockaddr *>(&addr_in);
 
-    int res = sendto(s, data.data(), data.size() + 1, 0, addr, sizeof(addr_in));
+    int res = sendto(s, &fix, sizeof fix, 0, addr, sizeof (addr_in));
 
     usleep(1e3);
 
     ASSERT_NE(res, -1);
     ASSERT_TRUE(callback_called);
-    ASSERT_EQ(received_bytes, ZOUIPOCAR_PACKET_SIZE);
+    compare_fixes(fix, received);
 }

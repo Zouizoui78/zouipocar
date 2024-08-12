@@ -1,4 +1,5 @@
 #include "../../common/common_constants.h"
+#include "Fix.hpp"
 #include "UDP.hpp"
 
 #include <arpa/inet.h>
@@ -19,11 +20,11 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
     addr.sin_port = htons(port);
     addr.sin_family = AF_INET;
 
-    if (bind(_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) != 0) {
+    if (bind(_socket, reinterpret_cast<sockaddr *>(&addr), sizeof addr) != 0) {
         throw std::runtime_error("Failed to bind UDP socket");
     }
 
-    _listen_buffer.resize(ZOUIPOCAR_PACKET_SIZE);
+    _listen_buffer.resize(sizeof (fix::Fix));
     listen(callback);
 }
 
@@ -40,14 +41,15 @@ void UDP::listen(UDPCallback callback) {
 
     _listen_thread = std::jthread([this, callback]() {
         sockaddr_in from;
-        socklen_t fromlen = sizeof(from);
+        socklen_t fromlen = sizeof from;
+        size_t packet_size = sizeof (fix::Fix);
 
         _listen_thread_running = true;
         while (_listen_thread_running) {
             ssize_t size = recvfrom(
                 _socket,
                 _listen_buffer.data(),
-                ZOUIPOCAR_PACKET_SIZE,
+                packet_size,
                 0,
                 reinterpret_cast<sockaddr*>(&from),
                 &fromlen
@@ -55,11 +57,11 @@ void UDP::listen(UDPCallback callback) {
             if (size == -1) {
                 std::cout << "UDP : Failed to receive data : " << strerror(errno) << std::endl;
             }
-            else if (size != ZOUIPOCAR_PACKET_SIZE && _listen_thread_running == true) {
-                std::cout << std::format("Received invalid packet, size = {} instead of {}", size, ZOUIPOCAR_PACKET_SIZE) << std::endl;
+            else if (size != packet_size && _listen_thread_running == true) {
+                std::cout << std::format("Received invalid packet, size = {} instead of {}", size, packet_size) << std::endl;
             }
             else if (_listen_thread_running) {
-                callback(_listen_buffer);
+                callback(fix::from_packet(_listen_buffer));
             }
         }
     });

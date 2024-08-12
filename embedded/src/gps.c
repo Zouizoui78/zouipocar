@@ -1,4 +1,3 @@
-#include "../../common/common_constants.h"
 #include "gps.h"
 #include "time_utils.h"
 #include "return_codes.h"
@@ -6,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int process_rmc(char *rmc, uint8_t *output) {
+int process_rmc(char *rmc, Fix *output) {
     char *token = NULL;
     char *delim = ",";
     char *end = NULL;
@@ -26,15 +25,15 @@ int process_rmc(char *rmc, uint8_t *output) {
     token = strtok(NULL, delim); // Latitude
     if (token == NULL)
         return AT_GPS_FAIL_LATITUDE;
-    float lat = strtod(token, &end);
-    int deg = lat / 100;
-    lat = deg + (lat - deg * 100) / 60;
+    float latitude = strtod(token, &end);
+    int deg = latitude / 100;
+    latitude = deg + (latitude - deg * 100) / 60;
 
     token = strtok(NULL, delim); // Latitude direction
     if (token == NULL)
         return AT_GPS_FAIL_LAT_DIRECTION;
     if (strcmp(token, "S") == 0)
-        lat *= -1;
+        latitude *= -1;
 
     token = strtok(NULL, delim); // Longitude
     if (token == NULL)
@@ -67,10 +66,10 @@ int process_rmc(char *rmc, uint8_t *output) {
 
     uint32_t timestamp = time_from_gps(time, date);
 
-    memcpy(output + ZOUIPOCAR_TIMESTAMP_OFFSET, &timestamp, ZOUIPOCAR_TIMESTAMP_SIZE);
-    memcpy(output + ZOUIPOCAR_LATITUDE_OFFSET, &lat, ZOUIPOCAR_LATITUDE_SIZE);
-    memcpy(output + ZOUIPOCAR_LONGITUDE_OFFSET, &longitude, ZOUIPOCAR_LONGITUDE_SIZE);
-    memcpy(output + ZOUIPOCAR_SPEED_OFFSET, &speed, ZOUIPOCAR_SPEED_SIZE);
+    output->timestamp = timestamp;
+    output->latitude = latitude;
+    output->longitude = longitude;
+    output->speed = speed;
 
     return AT_OK;
 }

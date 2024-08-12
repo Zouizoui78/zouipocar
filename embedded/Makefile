@@ -32,7 +32,7 @@ CFLAGS = -DF_CPU=$(F_CPU)UL
 CFLAGS += -Os
 CFLAGS += -mmcu=$(MCU)
 CFLAGS += -std=gnu99
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS += -funsigned-char -funsigned-bitfields -fshort-enums
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Wall -Wstrict-prototypes -Werror
 CFLAGS += -MMD -MP

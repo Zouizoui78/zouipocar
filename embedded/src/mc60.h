@@ -33,4 +33,4 @@ void clear_led(void);
 uint8_t get_led(void);
 uint8_t toggle_led(void);
 
-#endif // MC60
+#endif

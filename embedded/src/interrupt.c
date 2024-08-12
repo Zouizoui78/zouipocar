@@ -1,6 +1,5 @@
-#include "interrupt.h"
 #include "bit.h"
-#include "constants.h"
+#include "interrupt.h"
 
 void int_set_timer1_prescaler(uint16_t prescaler) {
     switch (prescaler)

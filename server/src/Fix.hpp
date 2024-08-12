@@ -4,18 +4,11 @@
 #include <cstdint>
 #include <vector>
 
-namespace zouipocar {
+namespace zouipocar::fix {
 
-struct Fix {
-public:
-    Fix() = default;
-    Fix(const std::vector<uint8_t>& packet);
+#include "../../common/Fix.h"
 
-    uint32_t timestamp = 0;
-    float latitude = 0;
-    float longitude = 0;
-    uint8_t speed = 0;
-};
+Fix from_packet(const std::vector<uint8_t>& packet);
 
 }
 

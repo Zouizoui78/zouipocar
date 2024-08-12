@@ -81,4 +81,4 @@ void int_disable_uart_reg_empty(void);
 void int_enable_uart_rx(void);
 void int_disable_uart_rx(void);
 
-#endif // INTERRUPT
+#endif

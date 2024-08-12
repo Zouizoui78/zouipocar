@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "return_codes.h"
-
 #define MAX_PACKET_SIZE 500
 #define MAX_STOP_WORD_SIZE 30
 
@@ -18,7 +16,7 @@ typedef struct Response {
 /**
  * @brief Search in str if it contains a string of stop_words.
  * The function returns the index of the first found occurence.
- * 
+ *
  * @param str String to search into.
  * @param stop_words Stop words information.
  * @return int Index of the first found word ; -1 if none.
@@ -60,4 +58,4 @@ int remove_epo_data(void);
 int get_epo_validity(char *output);
 int get_gps_rmc(char *rmc);
 
-#endif // AT
+#endif

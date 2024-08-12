@@ -6,8 +6,6 @@
 #include <math.h>
 #include <string.h>
 
-#include <avr/io.h>
-
 #define WRITE_TIMEOUT 5
 volatile uint16_t uart_timeout_counter = 0;
 

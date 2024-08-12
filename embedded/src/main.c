@@ -2,12 +2,11 @@
 #include "../../common/common_constants.h"
 #include "constants.h"
 #include "gps.h"
-#include "interrupt.h"
 #include "mc60.h"
+#include "return_codes.h"
 #include "uart.h"
 
 #include <avr/interrupt.h>
-#include <avr/io.h>
 #include <util/delay.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +14,7 @@
 #define WAIT_FAIL 1000
 
 int main(void) {
-    sei(); // Enable interrupts.
+    sei();
     setup_pins();
     uart_init(BAUDRATE, FOSC, UART_TIMEOUT_INTERRUPT);
 
@@ -46,8 +45,6 @@ int main(void) {
         if (res != AT_OK)
             _delay_ms(WAIT_FAIL);
     }
-
-    send_sms(PHONE, "Starting");
 
     res = -1;
     while (res != AT_OK) {
@@ -87,8 +84,6 @@ int main(void) {
             _delay_ms(WAIT_FAIL);
     }
 
-    send_sms(PHONE, v);
-
     res = -1;
     while (res != AT_OK) {
         res = set_ip_multiplexing(0);
@@ -100,8 +95,8 @@ int main(void) {
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
 
     char rmc[80];
-    uint8_t packet[ZOUIPOCAR_PACKET_SIZE];
-    uint8_t connection_lost_sms_sent = 0;
+    Fix fix;
+    uint8_t connection_lost_sms_sent = 1;
     uint8_t trying_to_connect_sms_sent = 0;
     uint8_t connected_sms_sent = 0;
     while (1) {
@@ -143,11 +138,11 @@ int main(void) {
             continue;
         }
 
-        if (process_rmc(rmc, packet) == AT_OK) {
-            udp_send(packet, ZOUIPOCAR_PACKET_SIZE);
+        if (process_rmc(rmc, &fix) == AT_OK) {
+            udp_send((uint8_t*)&fix, sizeof (Fix));
         }
         memset(rmc, 0, 80);
-        memset(packet, 0, ZOUIPOCAR_PACKET_SIZE);
+        memset(&fix, 0, sizeof (Fix));
 
         _delay_ms(1000);
     }

@@ -8,4 +8,4 @@
 #define PHONE "123456789"
 #define SERVER "example.com"
 
-#endif // CONSTANTS_H
+#endif

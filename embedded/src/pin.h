@@ -24,4 +24,4 @@ uint8_t pin_toggle(Pin pin);
 void pin_write(Pin pin, uint8_t state);
 uint8_t pin_read(Pin pin);
 
-#endif // PIN
+#endif

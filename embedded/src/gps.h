@@ -1,8 +1,8 @@
 #ifndef GPS
 #define GPS
 
-#include <stdint.h>
+#include "fix.h"
 
-int process_rmc(char *rmc, uint8_t *output);
+int process_rmc(char *rmc, Fix *output);
 
-#endif // GPS
+#endif

@@ -2,13 +2,16 @@
 #include "HTTPServer.hpp"
 #include "json.hpp"
 
+namespace zouipocar {
+
+namespace fix {
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, latitude, longitude, speed);
+}
+
 using namespace std::placeholders;
 using namespace httplib;
 
-namespace zouipocar {
-
 using json = nlohmann::json;
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db)
     : _db(db)
@@ -28,7 +31,7 @@ void HTTPServer::stop() {
     svr.stop();
 }
 
-void HTTPServer::send_fix_event(const Fix& fix) {
+void HTTPServer::send_fix_event(const fix::Fix& fix) {
     std::lock_guard lock(_cvm);
     _cvcid = _cvid++;
     _last_fix = fix;
@@ -167,7 +170,7 @@ bool HTTPServer::wait_event_fix(DataSink& sink) {
     return true;
 }
 
-std::optional<Fix> HTTPServer::get_last_fix() {
+std::optional<fix::Fix> HTTPServer::get_last_fix() {
     return _last_fix.has_value() ? _last_fix : _db->get_last_fix();
 }
 

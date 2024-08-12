@@ -27,21 +27,21 @@ void uart_init(uint32_t baudrate, uint32_t fosc, uint8_t enable_interrupts_flags
 
 /**
  * @brief Tells whether the tx buffer is empty and ready to receive data.
- * 
+ *
  * @return int 1 => empty and ready to receive data ; 0 => not empty
  */
 int uart_tx_reg_empty(void);
 
 /**
  * @brief Tells whether the tx buffer has sent its data.
- * 
+ *
  * @return int 1 => data sent ; 0 => data still in the buffer
  */
 int uart_tx_complete(void);
 
 /**
  * @brief Tells whether the rx buffer has received data.
- * 
+ *
  * @return int 1 => received data ; 0 => empty buffer
  */
 int uart_rx_complete(void);
@@ -61,4 +61,4 @@ uint8_t uart_read_string(char *output, size_t *output_size, char string_delimite
 
 void uart_flush(void);
 
-#endif // UART
+#endif
