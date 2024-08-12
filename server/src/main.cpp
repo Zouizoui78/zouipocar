@@ -31,7 +31,7 @@ int main(void)
         }
 
         // Don't store fix in DB if the tracker is not (or barely) moving.
-        if (fix.speed >= 5) {
+        if (fix.speed > 5) {
             db.insert_fix(fix);
         }
 
