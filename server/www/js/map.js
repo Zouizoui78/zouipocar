@@ -20,12 +20,13 @@ class ZouipocarMap {
             attributionControl: false
         }
 
-        const tilesOptions = {}
+        const tilesOptions = {
+            detectRetina: true
+        }
 
         if (utils.isClientMobile()) {
+            // Do not force zoom to have fixed steps.
             mapOptions.zoomSnap = 0;
-            tilesOptions.tileSize = 512;
-            tilesOptions.zoomOffset = -1;
         }
 
         this.map = L.map(divId, mapOptions);
@@ -65,14 +66,9 @@ class ZouipocarMap {
             iconAnchor: this.#markerAnchor,
         });
 
-        let popupOptions = {};
-        if (utils.isClientMobile()) {
-            popupOptions = { 'className': 'bigger-popup' };
-        }
-
         this.#carMarker = L.marker(pos, { icon: carIcon }).addTo(this.map);
         this.#carMarker.on("click", e => { this.#makePopupContent(pos); });
-        this.#carMarker.bindPopup("", popupOptions);
+        this.#carMarker.bindPopup("");
     }
 
     #center(pos){

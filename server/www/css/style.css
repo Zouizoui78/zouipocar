@@ -13,8 +13,6 @@ html,body,#map {
     padding: 10px;
     z-index: 400;
 
-    cursor: default;
-
     /* shape */
     width: 100px;
     height: 100px;
