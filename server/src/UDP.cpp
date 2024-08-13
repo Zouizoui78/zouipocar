@@ -24,7 +24,7 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
         throw std::runtime_error("Failed to bind UDP socket");
     }
 
-    _listen_buffer.resize(sizeof (fix::Fix));
+    _listen_buffer.resize(sizeof (Fix));
     listen(callback);
 }
 
@@ -42,7 +42,7 @@ void UDP::listen(UDPCallback callback) {
     _listen_thread = std::jthread([this, callback]() {
         sockaddr_in from;
         socklen_t fromlen = sizeof from;
-        size_t packet_size = sizeof (fix::Fix);
+        size_t packet_size = sizeof (Fix);
 
         _listen_thread_running = true;
         while (_listen_thread_running) {
@@ -61,7 +61,7 @@ void UDP::listen(UDPCallback callback) {
                 std::cout << std::format("Received invalid packet, size = {} instead of {}", size, packet_size) << std::endl;
             }
             else if (_listen_thread_running) {
-                callback(fix::from_packet(_listen_buffer));
+                callback(make_fix(_listen_buffer));
             }
         }
     });

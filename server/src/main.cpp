@@ -25,7 +25,7 @@ int main(void)
 
     zouipocar::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
 
-    zouipocar::UDP udp(ZOUIPOCAR_PORT, [&last_fix, &db, &svr](const zouipocar::fix::Fix &fix) {
+    zouipocar::UDP udp(ZOUIPOCAR_PORT, [&last_fix, &db, &svr](const Fix &fix) {
         if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp) {
             return;
         }

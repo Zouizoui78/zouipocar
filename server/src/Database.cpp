@@ -31,7 +31,7 @@ void Database::create_table() {
     }
 }
 
-bool Database::insert_fix(fix::Fix fix) {
+bool Database::insert_fix(Fix fix) {
     std::string statement = std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp, fix.speed, fix.latitude, fix.longitude);
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr, &_errmsg);
 
@@ -43,8 +43,8 @@ bool Database::insert_fix(fix::Fix fix) {
     return true;
 }
 
-std::optional<fix::Fix> Database::get_fix(uint32_t date) {
-    fix::Fix fix;
+std::optional<Fix> Database::get_fix(uint32_t date) {
+    Fix fix;
     int n = query(std::format("SELECT * FROM zoui WHERE timestamp={};", date), [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
@@ -59,8 +59,8 @@ std::optional<fix::Fix> Database::get_fix(uint32_t date) {
     return fix;
 }
 
-std::optional<fix::Fix> Database::get_first_fix() {
-    fix::Fix fix;
+std::optional<Fix> Database::get_first_fix() {
+    Fix fix;
     int n = query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
@@ -75,8 +75,8 @@ std::optional<fix::Fix> Database::get_first_fix() {
     return fix;
 }
 
-std::optional<fix::Fix> Database::get_last_fix() {
-    fix::Fix fix;
+std::optional<Fix> Database::get_last_fix() {
+    Fix fix;
     int n = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
         fix.timestamp = sqlite3_column_int64(stmt, 0);
         fix.speed = sqlite3_column_int64(stmt, 1);
@@ -91,11 +91,11 @@ std::optional<fix::Fix> Database::get_last_fix() {
     return fix;
 }
 
-std::vector<fix::Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
-    std::vector<fix::Fix> ret;
+std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
+    std::vector<Fix> ret;
 
     query(std::format("SELECT * FROM zoui WHERE timestamp BETWEEN {} AND {};", start, end), [this, &ret](sqlite3_stmt *stmt) {
-        fix::Fix f;
+        Fix f;
         f.timestamp = sqlite3_column_int64(stmt, 0);
         f.speed = sqlite3_column_int64(stmt, 1);
         f.latitude = sqlite3_column_double(stmt, 2);

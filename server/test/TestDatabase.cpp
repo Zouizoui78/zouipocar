@@ -14,7 +14,7 @@ TEST(TestDatabase, test_insert) {
     std::filesystem::create_directory(output_dir);
     Database* db = new Database(path.string());
 
-    fix::Fix f;
+    Fix f;
     f.timestamp = 1649577294;
     f.speed = 123;
     f.latitude = 15;
@@ -33,19 +33,19 @@ TEST(TestDatabase, test_insert) {
 TEST(TestDatabase, test_get_fix) {
     Database db("./test/test_resources/test.db");
 
-    fix::Fix first_record;
+    Fix first_record;
     first_record.timestamp = 1646722255;
     first_record.speed = 5;
     first_record.latitude = 48.76503;
     first_record.longitude = 2.03748;
 
-    fix::Fix last_record;
+    Fix last_record;
     last_record.timestamp = 1646722336;
     last_record.speed = 33;
     last_record.latitude = 48.763393;
     last_record.longitude = 2.03661;
 
-    fix::Fix record;
+    Fix record;
     record.timestamp = 1646722281;
     record.speed = 11;
     record.latitude = 48.76424;
@@ -58,7 +58,7 @@ TEST(TestDatabase, test_get_fix) {
 TEST(TestDatabase, test_get_first_fix) {
     Database db("./test/test_resources/test.db");
 
-    fix::Fix fix;
+    Fix fix;
     fix.timestamp = 1646722255;
     fix.speed = 5;
     fix.latitude = 48.76503;
@@ -70,7 +70,7 @@ TEST(TestDatabase, test_get_first_fix) {
 TEST(TestDatabase, test_get_last_fix) {
     Database db("./test/test_resources/test.db");
 
-    fix::Fix fix;
+    Fix fix;
     fix.timestamp = 1646722336;
     fix.speed = 33;
     fix.latitude = 48.763393;
@@ -81,7 +81,7 @@ TEST(TestDatabase, test_get_last_fix) {
 
 TEST(TestDatabase, test_get_fix_range) {
     Database db("./test/test_resources/test.db");
-    std::vector<fix::Fix> range = db.get_fix_range(1646722264, 1646722270);
+    std::vector<Fix> range = db.get_fix_range(1646722264, 1646722270);
     ASSERT_EQ(range.size(), 7);
     ASSERT_EQ(db.get_fix_range(1, 50).size(), 0);
 }

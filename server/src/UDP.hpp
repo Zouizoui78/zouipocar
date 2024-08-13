@@ -12,7 +12,7 @@ namespace zouipocar {
 
 class UDP {
 public:
-    using UDPCallback = std::function<void (const fix::Fix &)>;
+    using UDPCallback = std::function<void (const Fix &)>;
 
     UDP(uint16_t port, UDPCallback callback);
     ~UDP();

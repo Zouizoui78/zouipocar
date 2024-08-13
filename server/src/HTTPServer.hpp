@@ -22,12 +22,12 @@ public:
     bool listen(const std::string& addr, int port);
     void stop();
 
-    void send_fix_event(const fix::Fix& fix);
+    void send_fix_event(const Fix& fix);
 
 private:
     Database* _db;
     httplib::Server svr;
-    std::optional<fix::Fix> _last_fix;
+    std::optional<Fix> _last_fix;
 
     // Objects used to synchronize sending fixes to clients.
     std::condition_variable _cv;
@@ -46,7 +46,7 @@ private:
     bool wait_event_fix(httplib::DataSink& sink);
 
     // Return _last_fix if it has a value, Database::get_last_fix() otherwise.
-    std::optional<fix::Fix> get_last_fix();
+    std::optional<Fix> get_last_fix();
 };
 
 }

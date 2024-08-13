@@ -13,13 +13,13 @@ using namespace zouipocar_test;
 
 TEST(TestUDP, test_receiver_callback) {
     bool callback_called = false;
-    fix::Fix received;
-    UDP udp(5000, [&](const fix::Fix& fix) {
+    Fix received;
+    UDP udp(5000, [&](const Fix& fix) {
         callback_called = true;
         received = fix;
     });
 
-    fix::Fix fix;
+    Fix fix;
     fix.timestamp = 1723276072;
     fix.latitude = 48.931835;
     fix.longitude = 2.054971;

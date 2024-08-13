@@ -8,9 +8,7 @@
 
 using json = nlohmann::json;
 
-namespace zouipocar::fix {
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(fix::Fix, timestamp, speed, latitude, longitude);
-}
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
 using namespace zouipocar;
 

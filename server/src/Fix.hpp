@@ -4,11 +4,11 @@
 #include <cstdint>
 #include <vector>
 
-namespace zouipocar::fix {
-
 #include "../../common/Fix.h"
 
-Fix from_packet(const std::vector<uint8_t>& packet);
+namespace zouipocar {
+
+Fix make_fix(const std::vector<uint8_t>& packet);
 
 }
 

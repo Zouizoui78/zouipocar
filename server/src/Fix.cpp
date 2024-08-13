@@ -3,9 +3,9 @@
 
 #include <cstring>
 
-namespace zouipocar::fix {
+namespace zouipocar {
 
-Fix from_packet(const std::vector<uint8_t>& packet) {
+Fix make_fix(const std::vector<uint8_t>& packet) {
     Fix fix;
     memcpy(&fix, packet.data(), sizeof (Fix));
     return fix;
