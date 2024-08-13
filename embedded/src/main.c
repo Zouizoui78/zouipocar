@@ -13,85 +13,52 @@
 
 #define WAIT_FAIL 1000
 
+int CMD_RES = -1;
+#define LOOP_UNTIL_VALUE(_FUNCTION, _EXPECTED_VALUE) \
+    CMD_RES = _FUNCTION; \
+    while (CMD_RES != _EXPECTED_VALUE) { \
+        _delay_ms(WAIT_FAIL); \
+        CMD_RES = _FUNCTION; \
+    }
+
 int main(void) {
     sei();
     setup_pins();
     uart_init(BAUDRATE, FOSC, UART_TIMEOUT_INTERRUPT);
 
-    int res = -1;
-    while (res != AT_OK) {
-        res = disable_echo();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
+    LOOP_UNTIL_VALUE(disable_echo(), AT_OK);
+    LOOP_UNTIL_VALUE(set_ip_multiplexing(0), AT_OK);
+    LOOP_UNTIL_VALUE(set_sms_text_mode(), AT_OK);
+    LOOP_UNTIL_VALUE(udp_use_domain(), AT_OK);
 
-    res = -1;
-    while (res != AT_OK) {
-        res = enable_gps();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
+    // We follow the steps from Quectel_MC60_GNSS_AGPS_Application_Note_V1.1
+    // Operation Processes of EPO Function (Type B)
+    // - Set APN (no need to set the PDP context for some reason)
+    // - Wait for network connection
+    // - Enable NTP (in case NITZ is not available)
+    // - Wait for time synchronization
+    // - Enable EPO
+    // - Enable GPS
+    LOOP_UNTIL_VALUE(set_apn(APN), AT_OK);
+    LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED);
+    LOOP_UNTIL_VALUE(enable_ntp(), AT_OK);
+    LOOP_UNTIL_VALUE(check_time_sync_status(), AT_GPS_TIME_SYNCED);
 
-    res = -1;
-    while (res != AT_NETSTATE_REGISTERED) {
-        res = check_network_status();
-        if (res != AT_NETSTATE_REGISTERED)
-            _delay_ms(WAIT_FAIL);
-    }
+    send_sms(PHONE, "Time synced");
 
-    res = -1;
-    while (res != AT_OK) {
-        res = set_ip_multiplexing(0);
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
+    // Close connection to NTP server.
+    // Because of IP multiplexing being set to 0,
+    // we need that to be able to reliably connect
+    // to our server.
+    LOOP_UNTIL_VALUE(udp_deact(), AT_OK);
 
-    res = -1;
-    while (res != AT_OK) {
-        res = set_sms_text_mode();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    res = -1;
-    while (res != AT_OK) {
-        res = set_apn(APN);
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    res = -1;
-    while (res != AT_OK) {
-        res = udp_use_domain();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    enable_ntp();
-
-    res = -1;
-    while (res != AT_GPS_TIME_SYNCED) {
-        res = check_time_sync_status();
-        if (res != AT_GPS_TIME_SYNCED)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    send_sms(PHONE, "GPS time synced");
-
-    // Close connection to ntp server.
-    udp_deact();
-
-    res = -1;
-    while (res != AT_OK) {
-        res = enable_epo();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
+    LOOP_UNTIL_VALUE(enable_epo(), AT_OK);
+    LOOP_UNTIL_VALUE(enable_gps(), AT_OK);
 
     char port[5];
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
 
-    char rmc[80];
+    char rmc[NMEA_SENTENCE_MAX_SIZE];
     Fix fix;
     uint8_t connection_lost_sms_sent = 1;
     uint8_t trying_to_connect_sms_sent = 1;
@@ -112,7 +79,7 @@ int main(void) {
                 }
                 // This should put the system back in IP INITIAL
                 // state from which we can establish connection.
-                udp_deact();
+                LOOP_UNTIL_VALUE(udp_deact(), AT_OK);
                 _delay_ms(1000);
             }
 
@@ -138,7 +105,7 @@ int main(void) {
         if (process_rmc(rmc, &fix) == AT_OK) {
             udp_send((uint8_t*)&fix, sizeof (Fix));
         }
-        memset(rmc, 0, 80);
+        memset(rmc, 0, NMEA_SENTENCE_MAX_SIZE);
         memset(&fix, 0, sizeof (Fix));
 
         _delay_ms(1000);

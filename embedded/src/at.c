@@ -7,6 +7,14 @@
 #include <string.h>
 
 #define DEFAULT_TIMEOUT 5
+#define MAX_PACKET_SIZE 500
+#define MAX_STOP_WORD_SIZE 30
+
+typedef struct Response {
+    int8_t ret_code;
+    char data[MAX_PACKET_SIZE];
+    size_t data_length;
+} Response;
 
 // Global because there is only one thread
 // and it's easier that way
@@ -18,6 +26,14 @@ int index_of(char *str, char *search) {
     else return addr - str;
 }
 
+/**
+ * @brief Search in str if it contains a string of stop_words.
+ * The function returns the index of the first found occurence.
+ *
+ * @param str String to search into.
+ * @param stop_words Stop words information.
+ * @return int Index of the first found word ; -1 if none.
+ */
 int search_stop_words(char *str, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size) {
     for (int i = 0 ; i < stop_words_size ; ++i) {
         if (index_of(str, stop_words[i]) != -1)
@@ -362,13 +378,7 @@ int clear_sms_memory(void) {
 }
 
 int enable_epo(void) {
-    int epo_enable = simple_cmd("AT+QGNSSEPO=1\r");
-    int epo_trigger = simple_cmd("AT+QGEPOAID\r");
-
-    if (epo_enable == AT_OK && epo_trigger == AT_OK)
-        return AT_OK;
-    else
-        return AT_ERROR;
+    return simple_cmd("AT+QGNSSEPO=1\r");
 }
 
 int remove_epo_data(void) {
@@ -389,7 +399,7 @@ int get_gps_rmc(char *rmc) {
     if (simple_cmd("AT+QGNSSRD=\"NMEA/RMC\"\r") != AT_OK)
         return AT_ERROR;
     int start = index_of(res.data, "$");
-    int length = index_of(res.data, "*") - start + 3;
+    int length = index_of(res.data, "*") - start;
     memcpy(rmc, res.data + start, length);
     rmc[length] = '\0';
     return AT_OK;

@@ -4,31 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MAX_PACKET_SIZE 500
-#define MAX_STOP_WORD_SIZE 30
-
-typedef struct Response {
-    int8_t ret_code;
-    char data[MAX_PACKET_SIZE];
-    size_t data_length;
-} Response;
-
-/**
- * @brief Search in str if it contains a string of stop_words.
- * The function returns the index of the first found occurence.
- *
- * @param str String to search into.
- * @param stop_words Stop words information.
- * @return int Index of the first found word ; -1 if none.
- */
-int search_stop_words(char *str, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size);
-
-void cmd_raw_data(uint8_t *data, uint8_t data_size, Response *response, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size, uint16_t timeout);
-
-void cmd(char *cmd, Response *response, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size, uint16_t timeout);
-
-int simple_cmd(char *cmd);
-
 int disable_echo(void);
 
 int set_apn(char *apn_url);
@@ -40,12 +15,18 @@ int check_network_status(void);
 int check_time_sync_status(void);
 int enable_ntp(void);
 
+// If IP multiplexing is disabled,
+// only one connection can exist at a given time.
 int set_ip_multiplexing(uint8_t state);
 int get_ip_status(void);
+
+// Enable domain names resolution.
 int udp_use_domain(void);
 int udp_open(char *addr, char *port);
 int udp_close(void);
 int udp_send(uint8_t *data, uint8_t data_size);
+
+// Bring the TCP stack back to its initial state.
 int udp_deact(void);
 
 int set_sms_reception_mode(void);
