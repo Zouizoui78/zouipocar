@@ -41,6 +41,13 @@ int main(void) {
 
     res = -1;
     while (res != AT_OK) {
+        res = set_ip_multiplexing(0);
+        if (res != AT_OK)
+            _delay_ms(WAIT_FAIL);
+    }
+
+    res = -1;
+    while (res != AT_OK) {
         res = set_sms_text_mode();
         if (res != AT_OK)
             _delay_ms(WAIT_FAIL);
@@ -60,6 +67,8 @@ int main(void) {
             _delay_ms(WAIT_FAIL);
     }
 
+    enable_ntp();
+
     res = -1;
     while (res != AT_GPS_TIME_SYNCED) {
         res = check_time_sync_status();
@@ -69,24 +78,12 @@ int main(void) {
 
     send_sms(PHONE, "GPS time synced");
 
+    // Close connection to ntp server.
+    udp_deact();
+
     res = -1;
     while (res != AT_OK) {
         res = enable_epo();
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    char v[50] = "EPO : ";
-    res = -1;
-    while (res != AT_OK) {
-        res = get_epo_validity(v + 6);
-        if (res != AT_OK)
-            _delay_ms(WAIT_FAIL);
-    }
-
-    res = -1;
-    while (res != AT_OK) {
-        res = set_ip_multiplexing(0);
         if (res != AT_OK)
             _delay_ms(WAIT_FAIL);
     }
@@ -97,7 +94,7 @@ int main(void) {
     char rmc[80];
     Fix fix;
     uint8_t connection_lost_sms_sent = 1;
-    uint8_t trying_to_connect_sms_sent = 0;
+    uint8_t trying_to_connect_sms_sent = 1;
     uint8_t connected_sms_sent = 0;
     while (1) {
         int ip_status = get_ip_status();

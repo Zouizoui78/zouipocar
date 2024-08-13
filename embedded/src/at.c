@@ -139,6 +139,27 @@ int check_time_sync_status(void) {
         return AT_ERROR;
 }
 
+int enable_ntp(void) {
+    char *cmdstr = "AT+QNTP=\"time.nist.gov\",123\r";
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {
+        "OK", "ERROR"
+    };
+    cmd(cmdstr, &res, stop_words, 2, 120);
+
+    int pos = index_of(res.data, ": ");
+    if (pos == -1) return AT_ERROR;
+
+    switch (res.data[pos + 2]) {
+        case '0': return AT_OK;
+        case '1': return AT_NTP_UNKNOWN_FAIL;
+        case '2': return AT_NTP_NO_RESPONSE;
+        case '3': return AT_NTP_TCP_STACK_BUSY;
+        case '4': return AT_NTP_SERVER_NOT_FOUND;
+        case '5': return AT_NTP_PODP_CONTEXT_FAILED;
+        default: return AT_ERROR;
+    }
+}
+
 int set_ip_multiplexing(uint8_t state) {
     if (state > 1) {
         state = 1;
@@ -224,7 +245,7 @@ int udp_open(char *addr, char *port) {
         "ALREADY CONNECT", "CONNECT OK", "CONNECT FAIL", "ERROR"
     };
 
-    cmd(str, &res, stop_words, 4, 180);
+    cmd(str, &res, stop_words, 4, 75);
     int8_t ret = res.ret_code;
     if (ret == 0 || ret == 1)
         return AT_OK;
@@ -241,7 +262,7 @@ int udp_deact(void) {
         "OK", "ERROR"
     };
 
-    cmd("AT+QIDEACT\r", &res, stop_words, 2, 600);
+    cmd("AT+QIDEACT\r", &res, stop_words, 2, 40);
     return res.ret_code;
 }
 
@@ -330,7 +351,7 @@ int send_sms(char *phone_number, char *text) {
         "OK", "ERROR"
     };
 
-    cmd(termination, &res, stop_words, 2, 75);
+    cmd(termination, &res, stop_words, 2, 120);
 
     if (res.ret_code == 0) return AT_OK;
     else return AT_SMS_SEND_FAIL;

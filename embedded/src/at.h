@@ -38,6 +38,7 @@ int set_pdp_context(int context);
 
 int check_network_status(void);
 int check_time_sync_status(void);
+int enable_ntp(void);
 
 int set_ip_multiplexing(uint8_t state);
 int get_ip_status(void);
