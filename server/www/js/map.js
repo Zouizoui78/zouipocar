@@ -6,6 +6,7 @@ class ZouipocarMap {
     #markerSize = [60, 75];
     #markerAnchor = [30, 75];
     #defaultZoom = 16;
+    #currentPos;
 
     constructor(
         pos = [0, 0],
@@ -13,8 +14,10 @@ class ZouipocarMap {
         enableTrackButton = false,
         divId = "map"
     ) {
+        this.#currentPos = pos;
+
         const mapOptions = {
-            center: pos,
+            center: this.#currentPos,
             zoom: this.#defaultZoom,
             tap: false,
             attributionControl: false
@@ -33,7 +36,7 @@ class ZouipocarMap {
         new L.TileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', tilesOptions).addTo(this.map);
 
         if (showCarMarker) {
-            this.#showCarMarker(pos);
+            this.#showCarMarker();
         }
 
         if (enableTrackButton) {
@@ -42,10 +45,11 @@ class ZouipocarMap {
     }
 
     setCarPos(pos) {
-        this.#carMarker.setLatLng(pos);
+        this.#currentPos = pos;
+        this.#carMarker.setLatLng(this.#currentPos);
         if (this.#tracking) {
             this.#userPanning = false;
-            this.#center(pos);
+            this.#center();
             this.#userPanning = true;
         }
     }
@@ -59,25 +63,25 @@ class ZouipocarMap {
         L.marker(housePos, { icon: houseIcon }).addTo(this.map);
     }
 
-    #showCarMarker(pos) {
+    #showCarMarker() {
         const carIcon = L.icon({
             iconUrl: 'images/car.png',
             iconSize: this.#markerSize,
             iconAnchor: this.#markerAnchor,
         });
 
-        this.#carMarker = L.marker(pos, { icon: carIcon }).addTo(this.map);
-        this.#carMarker.on("click", e => { this.#makePopupContent(pos); });
+        this.#carMarker = L.marker(this.#currentPos, { icon: carIcon }).addTo(this.map);
+        this.#carMarker.on("click", e => { this.#makePopupContent(this.#currentPos); });
         this.#carMarker.bindPopup("");
     }
 
-    #center(pos){
+    #center(){
         const currentZoom = this.map.getZoom();
         if (currentZoom < this.#defaultZoom) {
-            this.map.setView(pos, this.#defaultZoom, { animate: false });
+            this.map.setView(this.#currentPos, this.#defaultZoom, { animate: false });
         }
         else {
-            this.map.setView(pos, currentZoom, { animate: false });
+            this.map.setView(this.#currentPos, currentZoom, { animate: false });
         }
     }
 
@@ -103,14 +107,14 @@ class ZouipocarMap {
         });
     }
 
-    #makePopupContent(pos) {
+    #makePopupContent() {
         const popupContent = "Latitude = " +
-            utils.formatNumber(pos[0]) +
+            utils.formatNumber(this.#currentPos[0]) +
             "<br>Longitude = " +
-            utils.formatNumber(pos[1]);
+            utils.formatNumber(this.#currentPos[1]);
         this.#carMarker.setPopupContent(popupContent);
 
-        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + pos[0] + '&lon=' + pos[1];
+        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + this.#currentPos[0] + '&lon=' + this.#currentPos[1];
         ajax.get(url, null, body => {
             const parsed = JSON.parse(body).address;
             if (!parsed) {
