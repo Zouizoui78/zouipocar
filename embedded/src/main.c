@@ -35,13 +35,14 @@ int main(void) {
     // Operation Processes of EPO Function (Type B)
     LOOP_UNTIL_VALUE(set_apn(APN), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED, WAIT_FAIL);
-    LOOP_UNTIL_VALUE(enable_ntp(), AT_OK, WAIT_FAIL);
 
-    // Close connection to NTP server.
-    // Because of IP multiplexing being set to 0,
-    // we need that to be able to reliably connect
-    // to our server.
-    LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
+    if (enable_ntp() == AT_OK) {
+        // Close connection to NTP server.
+        // Because of IP multiplexing being set to 0,
+        // we need that to be able to reliably connect
+        // to our server.
+        LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
+    }
 
     LOOP_UNTIL_VALUE(enable_epo(), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(enable_gps(), AT_OK, WAIT_FAIL);
