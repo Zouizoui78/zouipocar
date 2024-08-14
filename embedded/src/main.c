@@ -43,17 +43,8 @@ int main(void) {
     LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED, WAIT_FAIL);
     LOOP_UNTIL_VALUE(enable_ntp(), AT_OK, WAIT_FAIL);
 
-    // Close connection to NTP server.
-    // Because of IP multiplexing being set to 0,
-    // we need that to be able to reliably connect
-    // to our server.
-    LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
-
     LOOP_UNTIL_VALUE(enable_epo(), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(enable_gps(), AT_OK, WAIT_FAIL);
-    LOOP_UNTIL_VALUE(check_time_sync_status(), AT_GPS_TIME_SYNCED, WAIT_FAIL);
-
-    send_sms(PHONE, "Time synced\0");
 
     char port[5];
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
