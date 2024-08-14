@@ -33,16 +33,9 @@ int main(void) {
 
     // We follow the steps from Quectel_MC60_GNSS_AGPS_Application_Note_V1.1
     // Operation Processes of EPO Function (Type B)
-    // - Set APN (no need to set the PDP context for some reason)
-    // - Wait for network connection
-    // - Enable NTP (in case NITZ is not available)
-    // - Wait for time synchronization
-    // - Enable EPO
-    // - Enable GPS
     LOOP_UNTIL_VALUE(set_apn(APN), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED, WAIT_FAIL);
     LOOP_UNTIL_VALUE(enable_ntp(), AT_OK, WAIT_FAIL);
-
     LOOP_UNTIL_VALUE(enable_epo(), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(enable_gps(), AT_OK, WAIT_FAIL);
 
