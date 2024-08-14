@@ -44,7 +44,7 @@ int main(void) {
         LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
     }
 
-    LOOP_UNTIL_VALUE(enable_epo(), AT_OK, WAIT_FAIL);
+    enable_epo();
     LOOP_UNTIL_VALUE(enable_gps(), AT_OK, WAIT_FAIL);
 
     char port[5];
