@@ -14,10 +14,10 @@
 #define WAIT_FAIL 1000
 
 int CMD_RES = -1;
-#define LOOP_UNTIL_VALUE(_FUNCTION, _EXPECTED_VALUE) \
+#define LOOP_UNTIL_VALUE(_FUNCTION, _EXPECTED_VALUE, _WAIT) \
     CMD_RES = _FUNCTION; \
     while (CMD_RES != _EXPECTED_VALUE) { \
-        _delay_ms(WAIT_FAIL); \
+        _delay_ms(_WAIT); \
         CMD_RES = _FUNCTION; \
     }
 
@@ -26,10 +26,10 @@ int main(void) {
     setup_pins();
     uart_init(BAUDRATE, FOSC, UART_TIMEOUT_INTERRUPT);
 
-    LOOP_UNTIL_VALUE(disable_echo(), AT_OK);
-    LOOP_UNTIL_VALUE(set_ip_multiplexing(0), AT_OK);
-    LOOP_UNTIL_VALUE(set_sms_text_mode(), AT_OK);
-    LOOP_UNTIL_VALUE(udp_use_domain(), AT_OK);
+    LOOP_UNTIL_VALUE(disable_echo(), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(set_ip_multiplexing(0), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(set_sms_text_mode(), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(udp_use_domain(), AT_OK, WAIT_FAIL);
 
     // We follow the steps from Quectel_MC60_GNSS_AGPS_Application_Note_V1.1
     // Operation Processes of EPO Function (Type B)
@@ -39,21 +39,21 @@ int main(void) {
     // - Wait for time synchronization
     // - Enable EPO
     // - Enable GPS
-    LOOP_UNTIL_VALUE(set_apn(APN), AT_OK);
-    LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED);
-    LOOP_UNTIL_VALUE(enable_ntp(), AT_OK);
-    LOOP_UNTIL_VALUE(check_time_sync_status(), AT_GPS_TIME_SYNCED);
-
-    send_sms(PHONE, "Time synced");
+    LOOP_UNTIL_VALUE(set_apn(APN), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(enable_ntp(), AT_OK, WAIT_FAIL);
 
     // Close connection to NTP server.
     // Because of IP multiplexing being set to 0,
     // we need that to be able to reliably connect
     // to our server.
-    LOOP_UNTIL_VALUE(udp_deact(), AT_OK);
+    LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
 
-    LOOP_UNTIL_VALUE(enable_epo(), AT_OK);
-    LOOP_UNTIL_VALUE(enable_gps(), AT_OK);
+    LOOP_UNTIL_VALUE(enable_epo(), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(enable_gps(), AT_OK, WAIT_FAIL);
+    LOOP_UNTIL_VALUE(check_time_sync_status(), AT_GPS_TIME_SYNCED, WAIT_FAIL);
+
+    send_sms(PHONE, "Time synced\0");
 
     char port[5];
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
@@ -79,7 +79,7 @@ int main(void) {
                 }
                 // This should put the system back in IP INITIAL
                 // state from which we can establish connection.
-                LOOP_UNTIL_VALUE(udp_deact(), AT_OK);
+                LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
                 _delay_ms(1000);
             }
 
