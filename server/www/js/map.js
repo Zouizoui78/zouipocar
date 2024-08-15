@@ -20,20 +20,24 @@ class ZouipocarMap {
             center: this.#currentPos,
             zoom: this.#defaultZoom,
             tap: false,
-            attributionControl: false
         }
 
         const tilesOptions = {
-            detectRetina: true
+            detectRetina: true,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }
+
+        if (L.Browser.retina) {
+            tilesOptions.tileSize = 512,
+            tilesOptions.zoomOffset = -1
         }
 
         if (utils.isClientMobile()) {
-            // Do not force zoom to have fixed steps.
             mapOptions.zoomSnap = 0;
         }
 
         this.map = L.map(divId, mapOptions);
-        new L.TileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', tilesOptions).addTo(this.map);
+        new L.TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', tilesOptions).addTo(this.map);
 
         if (showCarMarker) {
             this.#showCarMarker();
