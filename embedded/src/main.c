@@ -93,14 +93,14 @@ int main(void) {
         if (gps_get_rmc(nmea) != AT_OK) {
             continue;
         }
-        if (process_rmc(nmea, &fix) == AT_OK) {
+        if (process_rmc(nmea, &fix) != AT_OK) {
             continue;
         }
 
         if (gps_get_gga(nmea) != AT_OK) {
             continue;
         }
-        if (process_gga(nmea, &fix) == AT_OK) {
+        if (process_gga(nmea, &fix) != AT_OK) {
             continue;
         }
 
