@@ -12,59 +12,86 @@ int process_rmc(char *src, Fix *output) {
     char *delim = ",";
     char *end = NULL;
     token = strtok(src, delim); // $GNRMC
-    if (token == NULL)
+    if (token == NULL) {
         return AT_GPS_FAIL_PARSE;
+    }
 
     token = strtok(NULL, delim); // Time
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     uint32_t time = strtol(token, &end, 10);
-    if (token == NULL || time == 0)
+    if (time == 0) {
         return AT_GPS_FAIL_TIME;
+    }
 
     token = strtok(NULL, delim); // Validity
-    if (token == NULL || strcmp(token, "V") == 0)
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
+    if (strcmp(token, "V") == 0) {
         return AT_GPS_FAIL_VALID;
+    }
 
     token = strtok(NULL, delim); // Latitude
-    if (token == NULL)
-        return AT_GPS_FAIL_LATITUDE;
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     float latitude = strtod(token, &end);
     int deg = latitude / 100;
     latitude = deg + (latitude - deg * 100) / 60;
 
     token = strtok(NULL, delim); // Latitude direction
-    if (token == NULL)
-        return AT_GPS_FAIL_LAT_DIRECTION;
-    if (strcmp(token, "S") == 0)
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
+    if (strcmp(token, "S") == 0) {
         latitude *= -1;
+    }
 
     token = strtok(NULL, delim); // Longitude
-    if (token == NULL)
-        return AT_GPS_FAIL_LONGITUDE;
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     float longitude = strtod(token, &end);
     deg = longitude / 100;
     longitude = deg + (longitude - deg * 100) / 60;
 
     token = strtok(NULL, delim); // Longitude direction
-    if (token == NULL)
-        return AT_GPS_FAIL_LONG_DIRECTION;
-    if (strcmp(token, "W") == 0)
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
+    if (strcmp(token, "W") == 0) {
         longitude *= -1;
+    }
 
     token = strtok(NULL, delim); // Speed (knots)
-    if (token == NULL)
-        return AT_GPS_FAIL_SPEED;
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     uint8_t speed = strtod(token, &end) * 1.852;
 
     token = strtok(NULL, delim); // Course Made Good
-    if (token == NULL)
-        return AT_GPS_FAIL_COURSE;
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
 
     token = strtok(NULL, delim); // Date
-    if (token == NULL)
-        return AT_GPS_FAIL_DATE;
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     uint32_t date = strtol(token, &end, 10);
-    if (date == 0)
+    if (date == 0) {
         return AT_GPS_FAIL_DATE;
+    }
 
     uint32_t timestamp = time_from_gps(time, date);
 
@@ -81,29 +108,60 @@ int process_gga(char *src, Fix *output) {
     char *delim = ",";
     char *end = NULL;
     token = strtok(src, delim); // $GNGGA
-    if (token == NULL)
+    if (token == NULL) {
         return AT_GPS_FAIL_PARSE;
+    }
 
     token = strtok(NULL, delim); // Time
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     token = strtok(NULL, delim); // Latitude
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     token = strtok(NULL, delim); // Latitude direction
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     token = strtok(NULL, delim); // Longitude
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     token = strtok(NULL, delim); // Longitude direction
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
+
     token = strtok(NULL, delim); // GPS Quality indicator
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
 
     token = strtok(NULL, delim); // Number of satellites
-    if (token == NULL)
+    if (token == NULL) {
         return AT_GPS_FAIL_SATELLITES;
+    }
+
     uint8_t satellites = strtol(token, &end, 10);
     if (satellites == 0) {
         return AT_GPS_FAIL_SATELLITES;
     }
 
     token = strtok(NULL, delim); // Horizontal dilution of precision
+    if (token == NULL) {
+        return AT_GPS_FAIL_PARSE;
+    }
 
     token = strtok(NULL, delim); // Altitude
-    if (token == NULL)
+    if (token == NULL) {
         return AT_GPS_FAIL_ALTITUDE;
+    }
+
     float altitude = strtod(token, &end);
 
     output->satellites = satellites;
