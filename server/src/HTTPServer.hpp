@@ -9,6 +9,9 @@
 
 #include "Fix.hpp"
 #include "httplib.h"
+#include "json.hpp"
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_ONLY_SERIALIZE(Fix, timestamp, latitude, longitude, speed, altitude);
 
 namespace zouipocar {
 
@@ -20,6 +23,7 @@ public:
     HTTPServer(std::string_view web_ui_path, Database* db);
 
     bool listen(const std::string& addr, int port);
+    void wait_until_ready();
     void stop();
 
     void send_fix_event(const Fix& fix);

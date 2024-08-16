@@ -1,8 +1,5 @@
 #include "Database.hpp"
 #include "HTTPServer.hpp"
-#include "json.hpp"
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, latitude, longitude, speed);
 
 namespace zouipocar {
 
@@ -20,6 +17,10 @@ HTTPServer::HTTPServer(std::string_view web_ui_path, Database* db)
 
 bool HTTPServer::listen(const std::string& addr, int port) {
     return svr.listen(addr, port);
+}
+
+void HTTPServer::wait_until_ready() {
+    svr.wait_until_ready();
 }
 
 void HTTPServer::stop() {

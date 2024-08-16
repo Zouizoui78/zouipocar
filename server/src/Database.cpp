@@ -24,7 +24,7 @@ Database::Database(std::string_view path) {
 }
 
 void Database::create_table() {
-    std::string statement = "CREATE TABLE IF NOT EXISTS zoui (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL);";
+    std::string statement = "CREATE TABLE IF NOT EXISTS zoui (timestamp INTEGER, speed INTEGER, latitude REAL, longitude REAL, altitude REAL);";
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr, &_errmsg);
     if (res != SQLITE_OK) {
         throw std::runtime_error(std::format("Failed to create table zoui : {}", _errmsg));
@@ -32,7 +32,14 @@ void Database::create_table() {
 }
 
 bool Database::insert_fix(Fix fix) {
-    std::string statement = std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp, fix.speed, fix.latitude, fix.longitude);
+    std::string statement = std::format(
+        "INSERT INTO zoui VALUES({}, {}, {}, {}, {});",
+        fix.timestamp,
+        fix.speed,
+        fix.latitude,
+        fix.longitude,
+        fix.altitude
+    );
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr, &_errmsg);
 
     if (res != SQLITE_OK) {
@@ -43,13 +50,18 @@ bool Database::insert_fix(Fix fix) {
     return true;
 }
 
+void fix_from_statement(Fix &fix, sqlite3_stmt *stmt) {
+    fix.timestamp = sqlite3_column_int64(stmt, 0);
+    fix.speed = sqlite3_column_int64(stmt, 1);
+    fix.latitude = sqlite3_column_double(stmt, 2);
+    fix.longitude = sqlite3_column_double(stmt, 3);
+    fix.altitude = sqlite3_column_double(stmt, 4);
+}
+
 std::optional<Fix> Database::get_fix(uint32_t date) {
     Fix fix;
     int n = query(std::format("SELECT * FROM zoui WHERE timestamp={};", date), [this, &fix](sqlite3_stmt *stmt) {
-        fix.timestamp = sqlite3_column_int64(stmt, 0);
-        fix.speed = sqlite3_column_int64(stmt, 1);
-        fix.latitude = sqlite3_column_double(stmt, 2);
-        fix.longitude = sqlite3_column_double(stmt, 3);
+        fix_from_statement(fix, stmt);
     });
 
     if (n == 0) {
@@ -62,10 +74,7 @@ std::optional<Fix> Database::get_fix(uint32_t date) {
 std::optional<Fix> Database::get_first_fix() {
     Fix fix;
     int n = query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
-        fix.timestamp = sqlite3_column_int64(stmt, 0);
-        fix.speed = sqlite3_column_int64(stmt, 1);
-        fix.latitude = sqlite3_column_double(stmt, 2);
-        fix.longitude = sqlite3_column_double(stmt, 3);
+        fix_from_statement(fix, stmt);
     });
 
     if (n == 0) {
@@ -78,10 +87,7 @@ std::optional<Fix> Database::get_first_fix() {
 std::optional<Fix> Database::get_last_fix() {
     Fix fix;
     int n = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
-        fix.timestamp = sqlite3_column_int64(stmt, 0);
-        fix.speed = sqlite3_column_int64(stmt, 1);
-        fix.latitude = sqlite3_column_double(stmt, 2);
-        fix.longitude = sqlite3_column_double(stmt, 3);
+        fix_from_statement(fix, stmt);
     });
 
     if (n == 0) {
@@ -96,10 +102,7 @@ std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
 
     query(std::format("SELECT * FROM zoui WHERE timestamp BETWEEN {} AND {};", start, end), [this, &ret](sqlite3_stmt *stmt) {
         Fix f;
-        f.timestamp = sqlite3_column_int64(stmt, 0);
-        f.speed = sqlite3_column_int64(stmt, 1);
-        f.latitude = sqlite3_column_double(stmt, 2);
-        f.longitude = sqlite3_column_double(stmt, 3);
+        fix_from_statement(f, stmt);
         ret.push_back(f);
     });
 

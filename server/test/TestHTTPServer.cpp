@@ -3,12 +3,9 @@
 #include "../../common/common_constants.h"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
-#include "json.hpp"
 #include "test_tools.hpp"
 
 using json = nlohmann::json;
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Fix, timestamp, speed, latitude, longitude);
 
 using namespace zouipocar;
 
@@ -23,6 +20,7 @@ class TestHTTPServer : public ::testing::Test {
         server_thread = std::jthread([this](){
             server.listen("0.0.0.0", ZOUIPOCAR_PORT);
         });
+        server.wait_until_ready();
     }
 
     void TearDown() override {
