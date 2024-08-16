@@ -38,6 +38,8 @@ int enable_gps(void);
 int enable_epo(void);
 int remove_epo_data(void);
 int get_epo_validity(char *output);
-int get_gps_rmc(char *rmc);
+
+int gps_get_rmc(char* output);
+int gps_get_gga(char* output);
 
 #endif

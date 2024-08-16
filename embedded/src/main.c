@@ -50,7 +50,7 @@ int main(void) {
     char port[5];
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
 
-    char rmc[NMEA_SENTENCE_MAX_SIZE];
+    char nmea[NMEA_SENTENCE_MAX_SIZE];
     Fix fix;
     uint8_t connection_lost_sms_sent = 1;
     uint8_t trying_to_connect_sms_sent = 1;
@@ -90,14 +90,22 @@ int main(void) {
             trying_to_connect_sms_sent = 0;
         }
 
-        if (get_gps_rmc(rmc) != AT_OK) {
+        if (gps_get_rmc(nmea) != AT_OK) {
+            continue;
+        }
+        if (process_rmc(nmea, &fix) == AT_OK) {
             continue;
         }
 
-        if (process_rmc(rmc, &fix) == AT_OK) {
-            udp_send((uint8_t*)&fix, sizeof (Fix));
+        if (gps_get_gga(nmea) != AT_OK) {
+            continue;
         }
-        memset(rmc, 0, NMEA_SENTENCE_MAX_SIZE);
+        if (process_gga(nmea, &fix) == AT_OK) {
+            continue;
+        }
+
+        udp_send((uint8_t*)&fix, sizeof (Fix));
+        memset(nmea, 0, NMEA_SENTENCE_MAX_SIZE);
         memset(&fix, 0, sizeof (Fix));
 
         _delay_ms(1000);

@@ -1,4 +1,5 @@
 #include "at.h"
+#include "constants.h"
 #include "return_codes.h"
 #include "uart.h"
 
@@ -399,12 +400,29 @@ int get_epo_validity(char *output) {
     return AT_OK;
 }
 
-int get_gps_rmc(char *rmc) {
-    if (simple_cmd("AT+QGNSSRD=\"NMEA/RMC\"\r") != AT_OK)
+// Output buffer needs to be allocated.
+// NMEA sentences are max. 82 chars long.
+int gps_get_nmea_sentence(char* sentence, char* output) {
+    char cmdstr[30];
+    sprintf(cmdstr, "AT+QGNSSRD=\"NMEA/%s\"\r", sentence);
+    if (simple_cmd(cmdstr) != AT_OK)
         return AT_ERROR;
     int start = index_of(res.data, "$");
     int length = index_of(res.data, "*") - start;
-    memcpy(rmc, res.data + start, length);
-    rmc[length] = '\0';
+
+    if (length > NMEA_SENTENCE_MAX_SIZE) {
+        return AT_ERROR;
+    }
+
+    memcpy(output, res.data + start, length);
+    output[length] = '\0';
     return AT_OK;
+}
+
+int gps_get_rmc(char *output) {
+    return gps_get_nmea_sentence("RMC", output);
+}
+
+int gps_get_gga(char* output) {
+    return gps_get_nmea_sentence("GGA", output);
 }

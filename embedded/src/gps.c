@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int process_rmc(char *rmc, Fix *output) {
+int process_rmc(char *src, Fix *output) {
     char *token = NULL;
     char *delim = ",";
     char *end = NULL;
-    token = strtok(rmc, delim); // $GNRMC
+    token = strtok(src, delim); // $GNRMC
     if (token == NULL)
         return AT_GPS_FAIL_PARSE;
 
@@ -70,6 +70,42 @@ int process_rmc(char *rmc, Fix *output) {
     output->latitude = latitude;
     output->longitude = longitude;
     output->speed = speed;
+
+    return AT_OK;
+}
+
+int process_gga(char *src, Fix *output) {
+    char *token = NULL;
+    char *delim = ",";
+    char *end = NULL;
+    token = strtok(src, delim); // $GNGGA
+    if (token == NULL)
+        return AT_GPS_FAIL_PARSE;
+
+    token = strtok(NULL, delim); // Time
+    token = strtok(NULL, delim); // Latitude
+    token = strtok(NULL, delim); // Latitude direction
+    token = strtok(NULL, delim); // Longitude
+    token = strtok(NULL, delim); // Longitude direction
+    token = strtok(NULL, delim); // GPS Quality indicator
+
+    token = strtok(NULL, delim); // Number of satellites
+    if (token == NULL)
+        return AT_GPS_FAIL_SATELLITES;
+    uint8_t satellites = strtol(token, &end, 10);
+    if (satellites == 0) {
+        return AT_GPS_FAIL_SATELLITES;
+    }
+
+    token = strtok(NULL, delim); // Horizontal dilution of precision
+
+    token = strtok(NULL, delim); // Altitude
+    if (token == NULL)
+        return AT_GPS_FAIL_ALTITUDE;
+    float altitude = strtod(token, &end);
+
+    output->satellites = satellites;
+    output->altitude = altitude;
 
     return AT_OK;
 }
