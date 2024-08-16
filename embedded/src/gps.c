@@ -1,3 +1,5 @@
+#include "at.h"
+#include "constants.h"
 #include "gps.h"
 #include "time_utils.h"
 #include "return_codes.h"
@@ -108,4 +110,24 @@ int process_gga(char *src, Fix *output) {
     output->altitude = altitude;
 
     return AT_OK;
+}
+
+int get_nmea_data(Fix *output, int (*get_func)(char *), int (*process_func)(char *, Fix *)) {
+    char nmea[NMEA_SENTENCE_MAX_SIZE];
+    memset(nmea, 0, NMEA_SENTENCE_MAX_SIZE);
+
+    int res = get_func(nmea);
+    if (res != AT_OK) {
+        return res;
+    }
+
+    return process_func(nmea, output);
+}
+
+int get_gps_data(Fix *output) {
+    int res = get_nmea_data(output, gps_get_rmc, process_rmc);
+    if (res != AT_OK) {
+        return res;
+    }
+    return get_nmea_data(output, gps_get_gga, process_gga);
 }

@@ -38,8 +38,10 @@ int main(void) {
 
     if (enable_ntp() == AT_OK) {
         // Close connection to NTP server.
-        // Because of IP multiplexing being set to 0,
-        // we need that to be able to reliably connect
+        // Because of IP multiplexing being disabled,
+        // the networking stack only supports one
+        // connection at a time.
+        // So we need that to be able to connect
         // to our server.
         LOOP_UNTIL_VALUE(udp_deact(), AT_OK, WAIT_FAIL);
     }
@@ -50,12 +52,14 @@ int main(void) {
     char port[5];
     snprintf(port, 5, "%d", ZOUIPOCAR_PORT);
 
-    char nmea[NMEA_SENTENCE_MAX_SIZE];
     Fix fix;
     uint8_t connection_lost_sms_sent = 1;
     uint8_t trying_to_connect_sms_sent = 1;
     uint8_t connected_sms_sent = 0;
     while (1) {
+        memset(&fix, 0, sizeof (Fix));
+        _delay_ms(1000);
+
         int ip_status = get_ip_status();
         while (ip_status != AT_IPSTATE_CONNECT_OK) {
             connected_sms_sent = 0;
@@ -90,25 +94,9 @@ int main(void) {
             trying_to_connect_sms_sent = 0;
         }
 
-        if (gps_get_rmc(nmea) != AT_OK) {
-            continue;
+        if (get_gps_data(&fix) == AT_OK) {
+            udp_send((uint8_t*)&fix, sizeof (Fix));
         }
-        if (process_rmc(nmea, &fix) != AT_OK) {
-            continue;
-        }
-
-        if (gps_get_gga(nmea) != AT_OK) {
-            continue;
-        }
-        if (process_gga(nmea, &fix) != AT_OK) {
-            continue;
-        }
-
-        udp_send((uint8_t*)&fix, sizeof (Fix));
-        memset(nmea, 0, NMEA_SENTENCE_MAX_SIZE);
-        memset(&fix, 0, sizeof (Fix));
-
-        _delay_ms(1000);
     }
 
     return 0;

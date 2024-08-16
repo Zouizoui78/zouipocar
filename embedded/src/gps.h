@@ -3,9 +3,7 @@
 
 #include "fix.h"
 
-// output must be allocated, these functions only sets its values.
-
-int process_rmc(char *src, Fix *output);
-int process_gga(char *src, Fix *output);
+// output must be allocated, this function only sets its values.
+int get_gps_data(Fix *output);
 
 #endif
