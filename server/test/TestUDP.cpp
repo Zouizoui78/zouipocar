@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "test_tools.hpp"
+#include "gtest/gtest.h"
 
 #include "Fix.hpp"
 #include "UDP.hpp"
@@ -14,7 +14,7 @@ using namespace zouipocar_test;
 TEST(TestUDP, test_receiver_callback) {
     bool callback_called = false;
     Fix received;
-    UDP udp(5000, [&](const Fix& fix) {
+    UDP udp(5000, [&](const Fix &fix) {
         callback_called = true;
         received = fix;
     });
@@ -34,7 +34,7 @@ TEST(TestUDP, test_receiver_callback) {
     addr_in.sin_family = AF_INET;
     sockaddr *addr = reinterpret_cast<sockaddr *>(&addr_in);
 
-    int res = sendto(s, &fix, sizeof fix, 0, addr, sizeof (addr_in));
+    int res = sendto(s, &fix, sizeof fix, 0, addr, sizeof(addr_in));
 
     usleep(1e3);
 

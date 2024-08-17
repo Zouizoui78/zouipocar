@@ -1,28 +1,52 @@
 #include "pin.h"
 #include "bit.h"
 
-volatile uint8_t* pin_get_direction_reg(Pin pin) {
-    if (pin <= B7) return &DDRB;
-    else if (pin <= C7) return &DDRC;
-    else return &DDRD;
+volatile uint8_t *pin_get_direction_reg(Pin pin) {
+    if (pin <= B7) {
+        return &DDRB;
+    }
+    else if (pin <= C7) {
+        return &DDRC;
+    }
+    else {
+        return &DDRD;
+    }
 }
 
-volatile uint8_t* pin_get_data_reg(Pin pin) {
-    if (pin <= B7) return &PORTB;
-    else if (pin <= C7) return &PORTC;
-    else return &PORTD;
+volatile uint8_t *pin_get_data_reg(Pin pin) {
+    if (pin <= B7) {
+        return &PORTB;
+    }
+    else if (pin <= C7) {
+        return &PORTC;
+    }
+    else {
+        return &PORTD;
+    }
 }
 
-volatile uint8_t* pin_get_input_reg(Pin pin) {
-    if (pin <= B7) return &PINB;
-    else if (pin <= C7) return &PINC;
-    else return &PIND;
+volatile uint8_t *pin_get_input_reg(Pin pin) {
+    if (pin <= B7) {
+        return &PINB;
+    }
+    else if (pin <= C7) {
+        return &PINC;
+    }
+    else {
+        return &PIND;
+    }
 }
 
 uint8_t pin_get_addr(Pin pin) {
-    if (pin <= B7) return pin;
-    else if (pin <= C7) return pin - 8;
-    else return pin - 16;
+    if (pin <= B7) {
+        return pin;
+    }
+    else if (pin <= C7) {
+        return pin - 8;
+    }
+    else {
+        return pin - 16;
+    }
 }
 
 void pin_configure(Pin pin, PinDirection direction) {

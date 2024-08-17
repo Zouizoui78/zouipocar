@@ -1,13 +1,10 @@
 #ifndef UART
 #define UART
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
-typedef enum UARTRetCodes {
-    UART_OK,
-    UART_TIMEOUT
-} UARTRetCodes;
+typedef enum UARTRetCodes { UART_OK, UART_TIMEOUT } UARTRetCodes;
 
 typedef enum UARTInterruptsFlags {
     UART_TX_INTERRUPT = 0b001,
@@ -23,7 +20,8 @@ void uart_disable_rx(void);
 
 void uart_set_baudrate(uint32_t baudrate, uint32_t fosc);
 
-void uart_init(uint32_t baudrate, uint32_t fosc, uint8_t enable_interrupts_flags);
+void uart_init(uint32_t baudrate, uint32_t fosc,
+               uint8_t enable_interrupts_flags);
 
 /**
  * @brief Tells whether the tx buffer is empty and ready to receive data.
@@ -56,8 +54,12 @@ uint8_t uart_write_array(uint8_t *data, size_t size);
 uint8_t uart_write_string(char *string);
 
 uint8_t uart_read_byte(uint16_t timeout);
-uint8_t uart_read_array(uint8_t *output, size_t *output_size, uint8_t packet_delimiter, size_t packet_max_size, uint16_t timeout);
-uint8_t uart_read_string(char *output, size_t *output_size, char string_delimiter, size_t string_max_size, uint16_t timeout);
+uint8_t uart_read_array(uint8_t *output, size_t *output_size,
+                        uint8_t packet_delimiter, size_t packet_max_size,
+                        uint16_t timeout);
+uint8_t uart_read_string(char *output, size_t *output_size,
+                         char string_delimiter, size_t string_max_size,
+                         uint16_t timeout);
 
 void uart_flush(void);
 

@@ -10,14 +10,12 @@ using json = nlohmann::json;
 using namespace zouipocar;
 
 class TestHTTPServer : public ::testing::Test {
-    protected:
-
+protected:
     TestHTTPServer()
-        : db(path), server("www", &db), client("localhost", ZOUIPOCAR_PORT)
-    {}
+        : db(path), server("www", &db), client("localhost", ZOUIPOCAR_PORT) {}
 
     void SetUp() override {
-        server_thread = std::jthread([this](){
+        server_thread = std::jthread([this]() {
             server.listen("0.0.0.0", ZOUIPOCAR_PORT);
         });
         server.wait_until_ready();

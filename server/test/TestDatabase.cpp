@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
 #include "Database.hpp"
 #include "test_tools.hpp"
+#include "gtest/gtest.h"
 
 #include <filesystem>
 #include <vector>
@@ -12,13 +12,13 @@ TEST(TestDatabase, test_insert) {
     std::filesystem::path output_dir(std::getenv("TEST_OUTPUT_DIR"));
     std::filesystem::path path(output_dir / "test.db");
     std::filesystem::create_directory(output_dir);
-    Database* db = new Database(path.string());
+    Database *db = new Database(path.string());
 
     Fix f;
     f.timestamp = 1649577294;
     f.speed = 123;
     f.latitude = 15;
-    f.longitude =  30;
+    f.longitude = 30;
     f.satellites = 5;
     f.altitude = 212;
 

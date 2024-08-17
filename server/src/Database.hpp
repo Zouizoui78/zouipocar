@@ -35,7 +35,7 @@ public:
 
 private:
     struct Sqlite3Deleter {
-        void operator()(sqlite3* handle);
+        void operator()(sqlite3 *handle);
     };
     std::unique_ptr<sqlite3, Sqlite3Deleter> _handle;
 
@@ -44,10 +44,9 @@ private:
     void create_table();
 
     // Return the number of affected rows.
-    template <typename T>
-    int query(const std::string &statement, T&& callback);
+    template <typename T> int query(const std::string &statement, T &&callback);
 };
 
-}
+} // namespace zouipocar
 
 #endif

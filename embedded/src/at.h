@@ -1,8 +1,8 @@
 #ifndef AT
 #define AT
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 int disable_echo(void);
 
@@ -39,7 +39,7 @@ int enable_epo(void);
 int remove_epo_data(void);
 int get_epo_validity(char *output);
 
-int gps_get_rmc(char* output);
-int gps_get_gga(char* output);
+int gps_get_rmc(char *output);
+int gps_get_gga(char *output);
 
 #endif

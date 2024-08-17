@@ -6,8 +6,8 @@
 namespace zouipocar_test {
 
 // Compare each of the fixes members.
-void compare_fixes(const Fix& first, const Fix& second);
+void compare_fixes(const Fix &first, const Fix &second);
 
-}
+} // namespace zouipocar_test
 
 #endif

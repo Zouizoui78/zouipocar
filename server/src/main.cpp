@@ -3,20 +3,19 @@
 #include <iostream>
 
 #include "../../common/common_constants.h"
-#include "constants.hpp"
 #include "Database.hpp"
 #include "Fix.hpp"
 #include "HTTPServer.hpp"
 #include "UDP.hpp"
+#include "constants.hpp"
 
-std::function<void (int)> signal_handler;
+std::function<void(int)> signal_handler;
 void c_signal_handler(int signal) {
     signal_handler(signal);
 }
 
-int main(void)
-{
-    for (int i = 0 ; i < NSIG ; i++) {
+int main(void) {
+    for (int i = 0; i < NSIG; i++) {
         signal(i, c_signal_handler);
     }
 

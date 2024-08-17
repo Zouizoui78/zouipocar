@@ -12,15 +12,15 @@ namespace zouipocar {
 
 class UDP {
 public:
-    using UDPCallback = std::function<void (const Fix &)>;
+    using UDPCallback = std::function<void(const Fix &)>;
 
     UDP(uint16_t port, UDPCallback callback);
     ~UDP();
 
-    UDP(const UDP& other) = delete;
-    UDP(UDP&& other) = delete;
-    UDP& operator=(const UDP& other) = delete;
-    UDP& operator=(UDP&& other) = delete;
+    UDP(const UDP &other) = delete;
+    UDP(UDP &&other) = delete;
+    UDP &operator=(const UDP &other) = delete;
+    UDP &operator=(UDP &&other) = delete;
 
 private:
     void listen(UDPCallback callback);
@@ -31,6 +31,6 @@ private:
     std::vector<uint8_t> _listen_buffer;
 };
 
-}
+} // namespace zouipocar
 
 #endif

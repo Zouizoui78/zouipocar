@@ -1,5 +1,5 @@
-#include "at.h"
 #include "../../common/common_constants.h"
+#include "at.h"
 #include "constants.h"
 #include "gps.h"
 #include "mc60.h"
@@ -7,18 +7,18 @@
 #include "uart.h"
 
 #include <avr/interrupt.h>
-#include <util/delay.h>
 #include <stdio.h>
 #include <string.h>
+#include <util/delay.h>
 
 #define WAIT_FAIL 1000
 
 int CMD_RES = -1;
-#define LOOP_UNTIL_VALUE(_FUNCTION, _EXPECTED_VALUE, _WAIT) \
-    CMD_RES = _FUNCTION; \
-    while (CMD_RES != _EXPECTED_VALUE) { \
-        _delay_ms(_WAIT); \
-        CMD_RES = _FUNCTION; \
+#define LOOP_UNTIL_VALUE(_FUNCTION, _EXPECTED_VALUE, _WAIT)                    \
+    CMD_RES = _FUNCTION;                                                       \
+    while (CMD_RES != _EXPECTED_VALUE) {                                       \
+        _delay_ms(_WAIT);                                                      \
+        CMD_RES = _FUNCTION;                                                   \
     }
 
 int main(void) {
@@ -57,7 +57,7 @@ int main(void) {
     uint8_t trying_to_connect_sms_sent = 1;
     uint8_t connected_sms_sent = 0;
     while (1) {
-        memset(&fix, 0, sizeof (Fix));
+        memset(&fix, 0, sizeof(Fix));
         _delay_ms(1000);
 
         int ip_status = get_ip_status();
@@ -95,7 +95,7 @@ int main(void) {
         }
 
         if (get_gps_data(&fix) == AT_OK) {
-            udp_send((uint8_t*)&fix, sizeof (Fix));
+            udp_send((uint8_t *)&fix, sizeof(Fix));
         }
     }
 

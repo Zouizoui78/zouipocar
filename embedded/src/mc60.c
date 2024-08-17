@@ -20,7 +20,7 @@ uint8_t get_pwrkey(void) {
     return pin_read(PWRKEY);
 }
 
-uint8_t toggle_pwrey(void){
+uint8_t toggle_pwrey(void) {
     return pin_toggle(PWRKEY);
 }
 
@@ -36,7 +36,7 @@ uint8_t get_gsmon(void) {
     return pin_read(GSMON);
 }
 
-uint8_t toggle_gsmon(void){
+uint8_t toggle_gsmon(void) {
     return pin_toggle(GSMON);
 }
 
@@ -52,6 +52,6 @@ uint8_t get_led(void) {
     return pin_read(LED);
 }
 
-uint8_t toggle_led(void){
+uint8_t toggle_led(void) {
     return pin_toggle(LED);
 }

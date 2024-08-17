@@ -36,11 +36,16 @@ void uart_disable_rx(void) {
 
 void uart_set_baudrate(uint32_t baudrate, uint32_t fosc) {
     double res = fosc / 16.0 / baudrate - 1;
-    if (res < 0) UBRR0 = 0;
-    else UBRR0 = (int)round(res);
+    if (res < 0) {
+        UBRR0 = 0;
+    }
+    else {
+        UBRR0 = (int)round(res);
+    }
 }
 
-void uart_init(uint32_t baudrate, uint32_t fosc, uint8_t enable_interrupts_flags) {
+void uart_init(uint32_t baudrate, uint32_t fosc,
+               uint8_t enable_interrupts_flags) {
     uart_set_baudrate(baudrate, fosc);
     uart_enable_tx();
     uart_enable_rx();
@@ -88,8 +93,9 @@ uint8_t uart_write_byte(uint8_t data) {
     }
 
     // If not empty then we timed out.
-    if (uart_tx_reg_empty() == 0)
+    if (uart_tx_reg_empty() == 0) {
         return UART_TIMEOUT;
+    }
 
     // Write data in tx buffer.
     UDR0 = data;
@@ -107,7 +113,7 @@ uint8_t uart_write_byte(uint8_t data) {
 }
 
 uint8_t uart_write_array(uint8_t *data, size_t size) {
-    for (uint8_t i = 0 ; i < size ; ++i) {
+    for (uint8_t i = 0; i < size; ++i) {
         if (uart_write_byte(data[i]) == UART_TIMEOUT) {
             return UART_TIMEOUT;
         }
@@ -116,7 +122,7 @@ uint8_t uart_write_array(uint8_t *data, size_t size) {
 }
 
 uint8_t uart_write_string(char *string) {
-    return uart_write_array((uint8_t*)string, strlen(string));
+    return uart_write_array((uint8_t *)string, strlen(string));
 }
 
 uint8_t uart_read_byte(uint16_t timeout) {
@@ -131,23 +137,32 @@ uint8_t uart_read_byte(uint16_t timeout) {
     return 0;
 }
 
-uint8_t uart_read_array(uint8_t *output, size_t *output_size, uint8_t packet_delimiter, size_t packet_max_size, uint16_t timeout) {
+uint8_t uart_read_array(uint8_t *output, size_t *output_size,
+                        uint8_t packet_delimiter, size_t packet_max_size,
+                        uint16_t timeout) {
     while (*output_size < packet_max_size) {
         uint8_t byte = uart_read_byte(timeout);
-        if (byte == 0) // timeout
+        if (byte == 0) { // timeout
             return UART_TIMEOUT;
+        }
         output[*output_size] = byte;
         ++*output_size;
-        if (output[*output_size - 1] == packet_delimiter) break;
+        if (output[*output_size - 1] == packet_delimiter) {
+            break;
+        }
     }
     return UART_OK;
 }
 
-uint8_t uart_read_string(char *output, size_t *output_size, char string_delimiter, size_t string_max_size, uint16_t timeout) {
-    uint8_t ret = uart_read_array((uint8_t*)output, output_size, string_delimiter, string_max_size, timeout);
+uint8_t uart_read_string(char *output, size_t *output_size,
+                         char string_delimiter, size_t string_max_size,
+                         uint16_t timeout) {
+    uint8_t ret = uart_read_array((uint8_t *)output, output_size,
+                                  string_delimiter, string_max_size, timeout);
 
-    if (ret == UART_TIMEOUT)
+    if (ret == UART_TIMEOUT) {
         return UART_TIMEOUT;
+    }
 
     output[*output_size] = 0;
 
@@ -156,7 +171,8 @@ uint8_t uart_read_string(char *output, size_t *output_size, char string_delimite
 
 void uart_flush(void) {
     uint8_t tmp;
-    while (uart_rx_complete() == 1)
+    while (uart_rx_complete() == 1) {
         tmp = UDR0;
+    }
     (void)tmp;
 }

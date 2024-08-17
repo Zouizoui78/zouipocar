@@ -1,9 +1,8 @@
-#include "bit.h"
 #include "interrupt.h"
+#include "bit.h"
 
 void int_set_timer1_prescaler(uint16_t prescaler) {
-    switch (prescaler)
-    {
+    switch (prescaler) {
     case 1:
         bit_set(&TCCR1B, CS10);
         break;

@@ -1,8 +1,8 @@
+#include "gps.h"
 #include "at.h"
 #include "constants.h"
-#include "gps.h"
-#include "time_utils.h"
 #include "return_codes.h"
+#include "time_utils.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -170,7 +170,8 @@ int process_gga(char *src, Fix *output) {
     return AT_OK;
 }
 
-int get_nmea_data(Fix *output, int (*get_func)(char *), int (*process_func)(char *, Fix *)) {
+int get_nmea_data(Fix *output, int (*get_func)(char *),
+                  int (*process_func)(char *, Fix *)) {
     char nmea[NMEA_SENTENCE_MAX_SIZE];
     memset(nmea, 0, NMEA_SENTENCE_MAX_SIZE);
 

@@ -23,8 +23,12 @@ static Response res;
 
 int index_of(char *str, char *search) {
     char *addr = strstr(str, search);
-    if (addr == NULL) return -1;
-    else return addr - str;
+    if (addr == NULL) {
+        return -1;
+    }
+    else {
+        return addr - str;
+    }
 }
 
 /**
@@ -35,10 +39,12 @@ int index_of(char *str, char *search) {
  * @param stop_words Stop words information.
  * @return int Index of the first found word ; -1 if none.
  */
-int search_stop_words(char *str, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size) {
-    for (int i = 0 ; i < stop_words_size ; ++i) {
-        if (index_of(str, stop_words[i]) != -1)
+int search_stop_words(char *str, char stop_words[][MAX_STOP_WORD_SIZE],
+                      uint8_t stop_words_size) {
+    for (int i = 0; i < stop_words_size; ++i) {
+        if (index_of(str, stop_words[i]) != -1) {
             return i;
+        }
     }
     return -1;
 }
@@ -49,32 +55,37 @@ void reset_response(Response *res) {
     res->data_length = 0;
 }
 
-void get_response(Response *response, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size, uint16_t timeout) {
+void get_response(Response *response, char stop_words[][MAX_STOP_WORD_SIZE],
+                  uint8_t stop_words_size, uint16_t timeout) {
     reset_response(&res);
     while (response->ret_code == -1) {
-        uint8_t ret = uart_read_string(response->data, &(response->data_length), 10, MAX_PACKET_SIZE, timeout);
+        uint8_t ret = uart_read_string(response->data, &(response->data_length),
+                                       10, MAX_PACKET_SIZE, timeout);
         if (ret == UART_TIMEOUT) {
             response->ret_code = -1;
             return;
         }
-        response->ret_code = search_stop_words(response->data, stop_words, stop_words_size);
+        response->ret_code =
+            search_stop_words(response->data, stop_words, stop_words_size);
     }
 }
 
-void cmd_raw_data(uint8_t *data, uint8_t data_size, Response *response, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size, uint16_t timeout) {
+void cmd_raw_data(uint8_t *data, uint8_t data_size, Response *response,
+                  char stop_words[][MAX_STOP_WORD_SIZE],
+                  uint8_t stop_words_size, uint16_t timeout) {
     uart_flush();
     uart_write_array(data, data_size);
     get_response(response, stop_words, stop_words_size, timeout);
 }
 
-void cmd(char *cmd, Response *response, char stop_words[][MAX_STOP_WORD_SIZE], uint8_t stop_words_size, uint16_t timeout) {
-    cmd_raw_data((uint8_t *)cmd, strlen(cmd), response, stop_words, stop_words_size, timeout);
+void cmd(char *cmd, Response *response, char stop_words[][MAX_STOP_WORD_SIZE],
+         uint8_t stop_words_size, uint16_t timeout) {
+    cmd_raw_data((uint8_t *)cmd, strlen(cmd), response, stop_words,
+                 stop_words_size, timeout);
 }
 
 int simple_cmd(char *cmdstr) {
-    char stop_words[2][MAX_STOP_WORD_SIZE] = {
-        "OK", "ERROR"
-    };
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {"OK", "ERROR"};
 
     cmd(cmdstr, &res, stop_words, 2, DEFAULT_TIMEOUT);
     return res.ret_code;
@@ -114,53 +125,58 @@ int set_pdp_context(int context) {
 
 int check_network_status(void) {
     char *str = "AT+CGREG?\r";
-    if (simple_cmd(str) != AT_OK) return AT_ERROR;
+    if (simple_cmd(str) != AT_OK) {
+        return AT_ERROR;
+    }
 
     int pos = index_of(res.data, ",");
-    if (pos == -1) return AT_ERROR;
-
-    if (res.data[pos + 1] == '0')
-        return AT_NETSTATE_NOT_REGISTERED_NOT_SEARCHING;
-
-    else if (res.data[pos + 1] == '1')
-        return AT_NETSTATE_REGISTERED;
-
-    else if (res.data[pos + 1] == '2')
-        return AT_NETSTATE_NOT_REGISTERED_SEARCHING;
-
-    else if (res.data[pos + 1] == '3')
-        return AT_NETSTATE_REGISTRATION_DENIED;
-
-    else if (res.data[pos + 1] == '4')
-        return AT_NETSTATE_UNKNOWN;
-
-    else if (res.data[pos + 1] == '5')
-        return AT_NETSTATE_REGISTERED;
-
-    else
+    if (pos == -1) {
         return AT_ERROR;
+    }
+
+    switch (res.data[pos + 1]) {
+    case '0':
+        return AT_NETSTATE_NOT_REGISTERED_NOT_SEARCHING;
+    case '1':
+        return AT_NETSTATE_REGISTERED;
+    case '2':
+        return AT_NETSTATE_NOT_REGISTERED_SEARCHING;
+    case '3':
+        return AT_NETSTATE_REGISTRATION_DENIED;
+    case '4':
+        return AT_NETSTATE_UNKNOWN;
+    case '5':
+        return AT_NETSTATE_REGISTERED;
+    default:
+        return AT_ERROR;
+    }
 }
 
 int check_time_sync_status(void) {
     char *str = "AT+QGNSSTS?\r";
-    if (simple_cmd(str) != AT_OK) return AT_ERROR;
+    if (simple_cmd(str) != AT_OK) {
+        return AT_ERROR;
+    }
 
     int pos = index_of(res.data, ": ");
-    if (pos == -1) return AT_ERROR;
-
-    if (res.data[pos + 2] == '0')
-        return AT_GPS_TIME_NOT_SYNCED;
-    else if (res.data[pos + 2] == '1')
-        return AT_GPS_TIME_SYNCED;
-    else
+    if (pos == -1) {
         return AT_ERROR;
+    }
+
+    if (res.data[pos + 2] == '0') {
+        return AT_GPS_TIME_NOT_SYNCED;
+    }
+    else if (res.data[pos + 2] == '1') {
+        return AT_GPS_TIME_SYNCED;
+    }
+    else {
+        return AT_ERROR;
+    }
 }
 
 int enable_ntp(void) {
     char *cmdstr = "AT+QNTP=\"time.nist.gov\"\r";
-    char stop_words[2][MAX_STOP_WORD_SIZE] = {
-        "+QNTP: 0", "ERROR"
-    };
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {"+QNTP: 0", "ERROR"};
     cmd(cmdstr, &res, stop_words, 2, 120);
 
     if (res.ret_code == AT_OK) {
@@ -168,16 +184,25 @@ int enable_ntp(void) {
     }
 
     int pos = index_of(res.data, ": ");
-    if (pos == -1) return AT_ERROR;
+    if (pos == -1) {
+        return AT_ERROR;
+    }
 
     switch (res.data[pos + 2]) {
-        case '0': return AT_OK;
-        case '1': return AT_NTP_UNKNOWN_FAIL;
-        case '2': return AT_NTP_NO_RESPONSE;
-        case '3': return AT_NTP_TCP_STACK_BUSY;
-        case '4': return AT_NTP_SERVER_NOT_FOUND;
-        case '5': return AT_NTP_PDP_CONTEXT_FAILED;
-        default: return AT_ERROR;
+    case '0':
+        return AT_OK;
+    case '1':
+        return AT_NTP_UNKNOWN_FAIL;
+    case '2':
+        return AT_NTP_NO_RESPONSE;
+    case '3':
+        return AT_NTP_TCP_STACK_BUSY;
+    case '4':
+        return AT_NTP_SERVER_NOT_FOUND;
+    case '5':
+        return AT_NTP_PDP_CONTEXT_FAILED;
+    default:
+        return AT_ERROR;
     }
 }
 
@@ -192,63 +217,65 @@ int set_ip_multiplexing(uint8_t state) {
 }
 
 int get_ip_status(void) {
-    char stop_words[2][MAX_STOP_WORD_SIZE] = {
-        "STATE", "ERROR"
-    };
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {"STATE", "ERROR"};
 
     cmd("AT+QISTATE\r", &res, stop_words, 2, DEFAULT_TIMEOUT);
-    if (res.ret_code == 1)
+    if (res.ret_code == 1) {
         return AT_ERROR;
+    }
 
     int start_pos = index_of(res.data, ": ");
-    if (start_pos == -1)
+    if (start_pos == -1) {
         return AT_ERROR;
+    }
     start_pos += 2;
 
     int end_pos = index_of(res.data + start_pos, "\r") + start_pos;
-    if (end_pos == -1)
+    if (end_pos == -1) {
         return AT_ERROR;
+    }
 
     int status_length = end_pos - start_pos;
     char status[50];
     strncpy(status, res.data + start_pos, status_length);
     status[status_length] = '\0';
 
-    if (strcmp(status, "IP INITIAL") == 0)
+    if (strcmp(status, "IP INITIAL") == 0) {
         return AT_IPSTATE_INITIAL;
-
-    else if (strcmp(status, "IP START") == 0)
+    }
+    else if (strcmp(status, "IP START") == 0) {
         return AT_IPSTATE_START;
-
-    else if (strcmp(status, "IP CONFIG") == 0)
+    }
+    else if (strcmp(status, "IP CONFIG") == 0) {
         return AT_IPSTATE_CONFIG;
-
-    else if (strcmp(status, "IP IND") == 0)
+    }
+    else if (strcmp(status, "IP IND") == 0) {
         return AT_IPSTATE_IND;
-
-    else if (strcmp(status, "IP GPRSACT") == 0)
+    }
+    else if (strcmp(status, "IP GPRSACT") == 0) {
         return AT_IPSTATE_GPRSACT;
-
-    else if (strcmp(status, "IP STATUS") == 0)
+    }
+    else if (strcmp(status, "IP STATUS") == 0) {
         return AT_IPSTATE_STATUS;
-
-    else if (strcmp(status, "TCP CONNECTING") == 0)
+    }
+    else if (strcmp(status, "TCP CONNECTING") == 0) {
         return AT_IPSTATE_TCP_CONNECTING;
-
-    else if (strcmp(status, "UDP CONNECTING") == 0)
+    }
+    else if (strcmp(status, "UDP CONNECTING") == 0) {
         return AT_IPSTATE_UDP_CONNECTING;
-
-    else if (strcmp(status, "IP CLOSE") == 0)
+    }
+    else if (strcmp(status, "IP CLOSE") == 0) {
         return AT_IPSTATE_CLOSE;
-
-    else if (strcmp(status, "CONNECT OK") == 0)
+    }
+    else if (strcmp(status, "CONNECT OK") == 0) {
         return AT_IPSTATE_CONNECT_OK;
-
-    else if (strcmp(status, "PDP DEACT") == 0)
+    }
+    else if (strcmp(status, "PDP DEACT") == 0) {
         return AT_IPSTATE_PDP_DEACT;
-
-    else
+    }
+    else {
         return AT_ERROR;
+    }
 }
 
 int udp_use_domain(void) {
@@ -262,16 +289,20 @@ int udp_open(char *addr, char *port) {
     strcat(str, port);
     strcat(str, "\r");
 
-    char stop_words[4][MAX_STOP_WORD_SIZE] = {
-        "ALREADY CONNECT", "CONNECT OK", "CONNECT FAIL", "ERROR"
-    };
+    char stop_words[4][MAX_STOP_WORD_SIZE] = {"ALREADY CONNECT", "CONNECT OK",
+                                              "CONNECT FAIL", "ERROR"};
 
     cmd(str, &res, stop_words, 4, 75);
     int8_t ret = res.ret_code;
-    if (ret == 0 || ret == 1)
+    if (ret == 0 || ret == 1) {
         return AT_OK;
-    else if (ret == 2) return AT_UDP_CONNECT_FAIL;
-    else return AT_ERROR;
+    }
+    else if (ret == 2) {
+        return AT_UDP_CONNECT_FAIL;
+    }
+    else {
+        return AT_ERROR;
+    }
 }
 
 int udp_close(void) {
@@ -279,18 +310,14 @@ int udp_close(void) {
 }
 
 int udp_deact(void) {
-    char stop_words[2][MAX_STOP_WORD_SIZE] = {
-        "OK", "ERROR"
-    };
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {"OK", "ERROR"};
 
     cmd("AT+QIDEACT\r", &res, stop_words, 2, 40);
     return res.ret_code;
 }
 
 int udp_send(uint8_t *data, uint8_t data_size) {
-    char stop_words[3][MAX_STOP_WORD_SIZE] = {
-        "OK", "ERROR", "FAIL"
-    };
+    char stop_words[3][MAX_STOP_WORD_SIZE] = {"OK", "ERROR", "FAIL"};
 
     uart_flush();
     char str[50] = "AT+QISEND=";
@@ -299,8 +326,10 @@ int udp_send(uint8_t *data, uint8_t data_size) {
     uart_write_string(str);
 
     // Discard "\r\n" sent by MC60.
-    if (uart_read_string(res.data, &(res.data_length), 10, MAX_PACKET_SIZE, DEFAULT_TIMEOUT) == UART_TIMEOUT)
+    if (uart_read_string(res.data, &(res.data_length), 10, MAX_PACKET_SIZE,
+                         DEFAULT_TIMEOUT) == UART_TIMEOUT) {
         return AT_ERROR;
+    }
 
     char c[2];
     c[0] = uart_read_byte(DEFAULT_TIMEOUT);
@@ -308,24 +337,31 @@ int udp_send(uint8_t *data, uint8_t data_size) {
     if (c[0] == 'E' && c[1] == 'R') {
         return AT_ERROR;
     }
-    else if (c[0] != '>' || c[1] != ' ')
+    else if (c[0] != '>' || c[1] != ' ') {
         return AT_UDP_SEND_FAIL;
+    }
 
     // We got "> ", ok to continue.
     uart_flush();
     cmd_raw_data(data, data_size, &res, stop_words, 3, 10);
     int ret = res.ret_code;
 
-    if (ret == 0) return AT_OK;
-    else if (ret == 1) return AT_ERROR;
-    else if (ret == 2) return AT_UDP_SEND_FAIL;
-    else return AT_ERROR;
+    if (ret == 0) {
+        return AT_OK;
+    }
+    else if (ret == 1) {
+        return AT_ERROR;
+    }
+    else if (ret == 2) {
+        return AT_UDP_SEND_FAIL;
+    }
+    else {
+        return AT_ERROR;
+    }
 }
 
 int enable_gps(void) {
-    char stop_words[3][MAX_STOP_WORD_SIZE] = {
-        "OK", "7103", "ERROR"
-    };
+    char stop_words[3][MAX_STOP_WORD_SIZE] = {"OK", "7103", "ERROR"};
 
     cmd("AT+QGNSSC=1\r", &res, stop_words, 3, DEFAULT_TIMEOUT);
     if (res.ret_code == 2) {
@@ -350,8 +386,10 @@ int send_sms(char *phone_number, char *text) {
     uart_write_string(str);
 
     // Discard "\r\n" sent by MC60.
-    if (uart_read_string(res.data, &(res.data_length), 10, MAX_PACKET_SIZE, DEFAULT_TIMEOUT) == UART_TIMEOUT)
+    if (uart_read_string(res.data, &(res.data_length), 10, MAX_PACKET_SIZE,
+                         DEFAULT_TIMEOUT) == UART_TIMEOUT) {
         return AT_ERROR;
+    }
 
     char c[2];
     c[0] = uart_read_byte(DEFAULT_TIMEOUT);
@@ -359,8 +397,9 @@ int send_sms(char *phone_number, char *text) {
     if (c[0] == 'E' && c[1] == 'R') {
         return AT_ERROR;
     }
-    else if (c[0] != '>' || c[1] != ' ')
+    else if (c[0] != '>' || c[1] != ' ') {
         return AT_SMS_SEND_FAIL;
+    }
 
     // We got "> ", ok to continue.
     uart_flush();
@@ -368,14 +407,16 @@ int send_sms(char *phone_number, char *text) {
     char termination[2];
     termination[0] = 26;
 
-    char stop_words[2][MAX_STOP_WORD_SIZE] = {
-        "OK", "ERROR"
-    };
+    char stop_words[2][MAX_STOP_WORD_SIZE] = {"OK", "ERROR"};
 
     cmd(termination, &res, stop_words, 2, 120);
 
-    if (res.ret_code == 0) return AT_OK;
-    else return AT_SMS_SEND_FAIL;
+    if (res.ret_code == 0) {
+        return AT_OK;
+    }
+    else {
+        return AT_SMS_SEND_FAIL;
+    }
 }
 
 int clear_sms_memory(void) {
@@ -391,10 +432,14 @@ int remove_epo_data(void) {
 }
 
 int get_epo_validity(char *output) {
-    if (simple_cmd("AT+QGEPOF=2\r") != AT_OK) return AT_ERROR;
+    if (simple_cmd("AT+QGEPOF=2\r") != AT_OK) {
+        return AT_ERROR;
+    }
 
     int pos = index_of(res.data, ": ") + 2;
-    if (pos == -1) return AT_ERROR;
+    if (pos == -1) {
+        return AT_ERROR;
+    }
     memcpy(output, res.data + pos, 19);
     output[19] = '\0';
     return AT_OK;
@@ -402,11 +447,12 @@ int get_epo_validity(char *output) {
 
 // Output buffer needs to be allocated.
 // NMEA sentences are max. 82 chars long.
-int gps_get_nmea_sentence(char* sentence, char* output) {
+int gps_get_nmea_sentence(char *sentence, char *output) {
     char cmdstr[30];
     sprintf(cmdstr, "AT+QGNSSRD=\"NMEA/%s\"\r", sentence);
-    if (simple_cmd(cmdstr) != AT_OK)
+    if (simple_cmd(cmdstr) != AT_OK) {
         return AT_ERROR;
+    }
     int start = index_of(res.data, "$");
     int length = index_of(res.data, "*") - start;
 
@@ -423,6 +469,6 @@ int gps_get_rmc(char *output) {
     return gps_get_nmea_sentence("RMC", output);
 }
 
-int gps_get_gga(char* output) {
+int gps_get_gga(char *output) {
     return gps_get_nmea_sentence("GGA", output);
 }
