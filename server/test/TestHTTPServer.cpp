@@ -5,9 +5,21 @@
 #include "HTTPServer.hpp"
 #include "test_tools.hpp"
 
-using json = nlohmann::json;
-
 using namespace zouipocar;
+using namespace zouipocar_test;
+
+Fix deserialize_fix(const std::string &f) {
+    Fix fix;
+    memcpy(&fix, f.data(), sizeof(Fix));
+    return fix;
+}
+
+std::vector<Fix> deserialize_fixes(const std::string &f) {
+    std::vector<Fix> fixes;
+    fixes.resize(f.size() / sizeof(Fix));
+    memcpy(fixes.data(), f.data(), f.size());
+    return fixes;
+}
 
 class TestHTTPServer : public ::testing::Test {
 protected:
@@ -53,12 +65,12 @@ TEST_F(TestHTTPServer, test_fix) {
     auto res = client.Get("/api/fix/first");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body), db.get_first_fix());
+    compare_fixes(deserialize_fix(res->body), db.get_first_fix().value());
 
     res = client.Get("/api/fix/last");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body), db.get_last_fix());
+    compare_fixes(deserialize_fix(res->body), db.get_last_fix().value());
 
     res = client.Get("/api/fix?date=1646722281");
     ASSERT_TRUE(res);
@@ -77,7 +89,7 @@ TEST_F(TestHTTPServer, test_range) {
     auto res = client.Get("/api/range?start=1646722277&stop=1646722282");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
-    EXPECT_EQ(json::parse(res->body).size(), 6);
+    EXPECT_EQ(deserialize_fixes(res->body).size(), 6);
 
     res = client.Get("/api/range?start=1646722277&stop=1646722277");
     ASSERT_TRUE(res);

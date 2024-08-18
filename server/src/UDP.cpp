@@ -61,7 +61,7 @@ void UDP::listen(UDPCallback callback) {
                     << std::endl;
             }
             else if (_listen_thread_running) {
-                callback(make_fix(_listen_buffer));
+                callback(deserialize_fix(_listen_buffer));
             }
         }
     });

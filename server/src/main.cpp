@@ -35,7 +35,7 @@ int main(void) {
         }
 
         last_fix = fix;
-        svr.send_fix_event(fix);
+        svr.update_fix(fix);
     });
 
     signal_handler = [&svr](int signal) {

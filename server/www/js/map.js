@@ -8,12 +8,8 @@ class ZouipocarMap {
     #defaultZoom = 16;
     #currentPos;
 
-    constructor(
-        pos = [0, 0],
-        showCarMarker = false,
-        enableTrackButton = false,
-        divId = "map"
-    ) {
+    constructor(pos = [0, 0], showCarMarker = false,
+        enableTrackButton = false, divId = "map") {
         this.#currentPos = pos;
 
         const mapOptions = {
@@ -24,12 +20,12 @@ class ZouipocarMap {
 
         const tilesOptions = {
             detectRetina: true,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }
 
         if (L.Browser.retina) {
-            tilesOptions.tileSize = 512,
-            tilesOptions.zoomOffset = -1
+            tilesOptions.tileSize = 512, tilesOptions.zoomOffset = -1
         }
 
         if (utils.isClientMobile()) {
@@ -37,7 +33,10 @@ class ZouipocarMap {
         }
 
         this.map = L.map(divId, mapOptions);
-        new L.TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', tilesOptions).addTo(this.map);
+        new L
+            .TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                tilesOptions)
+            .addTo(this.map);
 
         if (showCarMarker) {
             this.#showCarMarker();
@@ -74,15 +73,19 @@ class ZouipocarMap {
             iconAnchor: this.#markerAnchor,
         });
 
-        this.#carMarker = L.marker(this.#currentPos, { icon: carIcon }).addTo(this.map);
-        this.#carMarker.on("click", e => { this.#makePopupContent(this.#currentPos); });
+        this.#carMarker =
+            L.marker(this.#currentPos, { icon: carIcon }).addTo(this.map);
+        this.#carMarker.on("click", e => {
+            this.#makePopupContent(this.#currentPos);
+        });
         this.#carMarker.bindPopup("");
     }
 
-    #center(){
+    #center() {
         const currentZoom = this.map.getZoom();
         if (currentZoom < this.#defaultZoom) {
-            this.map.setView(this.#currentPos, this.#defaultZoom, { animate: false });
+            this.map.setView(this.#currentPos, this.#defaultZoom,
+                { animate: false });
         }
         else {
             this.map.setView(this.#currentPos, currentZoom, { animate: false });
@@ -112,13 +115,14 @@ class ZouipocarMap {
     }
 
     #makePopupContent() {
-        const popupContent = "Latitude = " +
-            utils.formatNumber(this.#currentPos[0]) +
-            "<br>Longitude = " +
-            utils.formatNumber(this.#currentPos[1]);
+        const popupContent =
+            "Latitude = " + utils.formatNumber(this.#currentPos[0]) +
+            "<br>Longitude = " + utils.formatNumber(this.#currentPos[1]);
         this.#carMarker.setPopupContent(popupContent);
 
-        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + this.#currentPos[0] + '&lon=' + this.#currentPos[1];
+        const url =
+            'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' +
+            this.#currentPos[0] + '&lon=' + this.#currentPos[1];
         ajax.get(url, null, body => {
             const parsed = JSON.parse(body).address;
             if (!parsed) {
@@ -133,7 +137,8 @@ class ZouipocarMap {
                 town = parsed.city;
             }
 
-            let addr = parsed.road + ", " + parsed.postcode + " " + town + ", " + parsed.country;
+            let addr = parsed.road + ", " + parsed.postcode + " " + town +
+                ", " + parsed.country;
             if (parsed.house_number) {
                 addr = parsed.house_number + " " + addr;
             }

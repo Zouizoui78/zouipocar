@@ -5,7 +5,7 @@
 
 namespace zouipocar {
 
-Fix make_fix(const std::vector<uint8_t> &packet) {
+Fix deserialize_fix(const std::vector<uint8_t> &packet) {
     Fix fix;
     memcpy(&fix, packet.data(), sizeof(Fix));
     return fix;

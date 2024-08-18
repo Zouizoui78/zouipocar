@@ -31,7 +31,7 @@ int main(void) {
     LOOP_UNTIL_VALUE(set_sms_text_mode(), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(udp_use_domain(), AT_OK, WAIT_FAIL);
 
-    // We follow the steps from Quectel_MC60_GNSS_AGPS_Application_Note_V1.1
+    // We follow the steps from Quectel_MC60_GNSS_AGPS_Application_Note
     // Operation Processes of EPO Function (Type B)
     LOOP_UNTIL_VALUE(set_apn(APN), AT_OK, WAIT_FAIL);
     LOOP_UNTIL_VALUE(check_network_status(), AT_NETSTATE_REGISTERED, WAIT_FAIL);

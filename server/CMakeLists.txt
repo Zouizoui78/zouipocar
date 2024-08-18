@@ -23,7 +23,6 @@ set(
     ${PROJECT_SOURCE_DIR}/src/UDP.hpp
     ${PROJECT_SOURCE_DIR}/external/httplib.cpp
     ${PROJECT_SOURCE_DIR}/external/httplib.h
-    ${PROJECT_SOURCE_DIR}/external/json.hpp
 )
 
 add_library(zouipocar STATIC ${SRC})

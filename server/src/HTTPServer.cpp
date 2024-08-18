@@ -6,7 +6,14 @@ namespace zouipocar {
 using namespace std::placeholders;
 using namespace httplib;
 
-using json = nlohmann::json;
+std::string serialize_fix(const Fix &fix) {
+    return std::string(reinterpret_cast<const char *>(&fix), sizeof(Fix));
+}
+
+std::string serialize_fixes(const std::vector<Fix> &fixes) {
+    return std::string(reinterpret_cast<const char *>(fixes.data()),
+                       sizeof(Fix) * fixes.size());
+}
 
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     register_handlers();
@@ -22,17 +29,11 @@ void HTTPServer::wait_until_ready() {
 }
 
 void HTTPServer::stop() {
-    std::lock_guard lock(_cvm);
-    _cvcid = _cvid.load();
-    _cv.notify_all();
     svr.stop();
 }
 
-void HTTPServer::send_fix_event(const Fix &fix) {
-    std::lock_guard lock(_cvm);
-    _cvcid = _cvid++;
+void HTTPServer::update_fix(const Fix &fix) {
     _last_fix = fix;
-    _cv.notify_all();
 }
 
 void HTTPServer::register_handlers() {
@@ -42,8 +43,6 @@ void HTTPServer::register_handlers() {
             std::bind(&HTTPServer::api_fix_last, this, _1, _2));
     svr.Get("/api/fix", std::bind(&HTTPServer::api_fix, this, _1, _2));
     svr.Get("/api/range", std::bind(&HTTPServer::api_range, this, _1, _2));
-    svr.Get("/api/event/fix",
-            std::bind(&HTTPServer::api_event_fix, this, _1, _2));
 }
 
 void HTTPServer::api_fix(const Request &req, Response &res) {
@@ -74,7 +73,7 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(json(*fix).dump(), "application/json");
+    res.set_content(serialize_fix(*fix), "application/octet-stream");
 }
 
 void HTTPServer::api_fix_first(const Request &req, Response &res) {
@@ -83,16 +82,16 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(json(*fix).dump(), "application/json");
+    res.set_content(serialize_fix(*fix), "application/octet-stream");
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
-    auto fix = get_last_fix();
+    auto fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
     if (!fix.has_value()) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(json(*fix).dump(), "application/json");
+    res.set_content(serialize_fix(*fix), "application/octet-stream");
 }
 
 void HTTPServer::api_range(const Request &req, Response &res) {
@@ -128,54 +127,8 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         return;
     }
 
-    res.set_content(json(_db->get_fix_range(start, stop)).dump(),
-                    "application/json");
-}
-
-void HTTPServer::api_event_fix(const httplib::Request &req,
-                               httplib::Response &res) {
-    // These two headers should ensure that no buffering gets in the stream's
-    // way. https://serverfault.com/a/801629
-    res.set_header("X-Accel-Buffering", "no");
-    res.set_header("Cache-Control", "no-cache");
-    res.set_chunked_content_provider("text/event-stream",
-                                     [this](size_t size, DataSink &sink) {
-                                         // Stream is canceled if this returns
-                                         // false.
-                                         return wait_event_fix(sink);
-                                     });
-}
-
-bool HTTPServer::wait_event_fix(DataSink &sink) {
-    std::unique_lock lock(_cvm);
-    int id = _cvid;
-
-    // We have to check whether the stream is writable here,
-    // otherwise the thread would hang forever
-    // after the client has disconnected.
-    while (id != _cvcid && sink.is_writable()) {
-        _cv.wait_for(lock, std::chrono::seconds(1));
-    }
-
-    if (!sink.is_writable()) {
-        return false;
-    }
-
-    auto fix = get_last_fix();
-    if (!fix.has_value()) {
-        return false;
-    }
-
-    // The "server-sent events" spec says that an unnamed event message
-    // must start with "data:" and that any event must end with an empty line
-    // for the client to handle it.
-    // This is to allow messages with multiple lines.
-    sink.os << "data:" << json(fix.value()).dump() << "\n\n";
-    return true;
-}
-
-std::optional<Fix> HTTPServer::get_last_fix() {
-    return _last_fix.has_value() ? _last_fix : _db->get_last_fix();
+    res.set_content(serialize_fixes(_db->get_fix_range(start, stop)),
+                    "application/octet-stream");
 }
 
 } // namespace zouipocar

@@ -1,13 +1,13 @@
 let map;
+let interval;
 
-ajax.get("api/fix/last", null,
-    (json_fix) => {
-        const fix = JSON.parse(json_fix);
-        const pos = [
-            fix.latitude,
-            fix.longitude
-        ];
-
+ajax.get(
+    "api/fix/last",
+    null,
+    "arraybuffer",
+    (req) => {
+        const fix = utils.parseFix(req.response);
+        const pos = [fix.latitude, fix.longitude];
         map = new ZouipocarMap(pos, true, true);
         setSpeed(fix.speed);
     },
@@ -18,21 +18,25 @@ ajax.get("api/fix/last", null,
 
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState == "visible") {
-        ajax.get("api/fix/last", null, (json_fix) => { onFix(json_fix); });
+        getLastFix();
+        interval = setInterval(getLastFix, 1000);
+    }
+    else {
+        clearInterval(interval);
     }
 });
 
-const ev = new EventSource("api/event/fix");
-ev.onmessage = function(e) {
-    onFix(e.data);
+interval = setInterval(getLastFix, 1000);
+
+function getLastFix() {
+    ajax.get("api/fix/last", null, "arraybuffer", (req) => {
+        onFix(req.response);
+    });
 }
 
-function onFix(json_fix) {
-    const fix = JSON.parse(json_fix);
-    const pos = [
-        fix.latitude,
-        fix.longitude
-    ];
+function onFix(buffer) {
+    const fix = utils.parseFix(buffer);
+    const pos = [fix.latitude, fix.longitude];
 
     console.log(fix);
 
@@ -42,9 +46,8 @@ function onFix(json_fix) {
 
 function setSpeed(speed) {
     if (speed < 5) {
-        document.getElementById('speed').innerHTML = '0';
-    }
-    else {
-        document.getElementById('speed').innerHTML = speed;
+        document.getElementById("speed").innerHTML = "0";
+    } else {
+        document.getElementById("speed").innerHTML = speed;
     }
 }
