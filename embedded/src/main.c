@@ -1,4 +1,3 @@
-#include "../../common/common_constants.h"
 #include "at.h"
 #include "constants.h"
 #include "gps.h"

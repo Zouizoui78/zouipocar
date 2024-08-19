@@ -1,6 +1,8 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+#include "../../common/common_constants.h"
+
 #include <string>
 
 namespace zouipocar {

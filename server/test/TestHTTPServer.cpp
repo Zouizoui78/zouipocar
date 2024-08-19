@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "../../common/common_constants.h"
 #include "Database.hpp"
 #include "HTTPServer.hpp"
+#include "constants.hpp"
 #include "test_tools.hpp"
 
 using namespace zouipocar;

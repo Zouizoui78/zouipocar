@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <functional>
 #include <thread>
-#include <vector>
 
 #include "Fix.hpp"
 
@@ -28,7 +27,7 @@ private:
     int _socket;
     std::jthread _listen_thread;
     bool _listen_thread_running = false;
-    std::vector<uint8_t> _listen_buffer;
+    Fix _listen_buffer;
 };
 
 } // namespace zouipocar

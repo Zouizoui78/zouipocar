@@ -6,15 +6,6 @@ namespace zouipocar {
 using namespace std::placeholders;
 using namespace httplib;
 
-std::string serialize_fix(const Fix &fix) {
-    return std::string(reinterpret_cast<const char *>(&fix), sizeof(Fix));
-}
-
-std::string serialize_fixes(const std::vector<Fix> &fixes) {
-    return std::string(reinterpret_cast<const char *>(fixes.data()),
-                       sizeof(Fix) * fixes.size());
-}
-
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     register_handlers();
     svr.set_mount_point("/", std::string(web_ui_path));
@@ -73,7 +64,8 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(serialize_fix(*fix), "application/octet-stream");
+    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+                    "application/octet-stream");
 }
 
 void HTTPServer::api_fix_first(const Request &req, Response &res) {
@@ -82,7 +74,8 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(serialize_fix(*fix), "application/octet-stream");
+    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+                    "application/octet-stream");
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
@@ -91,7 +84,8 @@ void HTTPServer::api_fix_last(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(serialize_fix(*fix), "application/octet-stream");
+    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+                    "application/octet-stream");
 }
 
 void HTTPServer::api_range(const Request &req, Response &res) {
@@ -127,8 +121,9 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         return;
     }
 
-    res.set_content(serialize_fixes(_db->get_fix_range(start, stop)),
-                    "application/octet-stream");
+    auto fixes = _db->get_fix_range(start, stop);
+    res.set_content(reinterpret_cast<const char *>(fixes.data()),
+                    sizeof(Fix) * fixes.size(), "application/octet-stream");
 }
 
 } // namespace zouipocar

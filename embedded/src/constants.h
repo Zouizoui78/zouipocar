@@ -1,6 +1,8 @@
 #ifndef CONSTANTS
 #define CONSTANTS
 
+#include "../../common/common_constants.h"
+
 #define FOSC 16000000
 #define BAUDRATE 38400
 #define NMEA_SENTENCE_MAX_SIZE 82

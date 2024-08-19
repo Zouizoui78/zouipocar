@@ -1,6 +1,5 @@
 #include "UDP.hpp"
-#include "../../common/common_constants.h"
-#include "Fix.hpp"
+#include "constants.hpp"
 
 #include <arpa/inet.h>
 #include <cstring>
@@ -24,7 +23,6 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
         throw std::runtime_error("Failed to bind UDP socket");
     }
 
-    _listen_buffer.resize(sizeof(Fix));
     listen(callback);
 }
 
@@ -47,7 +45,7 @@ void UDP::listen(UDPCallback callback) {
         _listen_thread_running = true;
         while (_listen_thread_running) {
             ssize_t size =
-                recvfrom(_socket, _listen_buffer.data(), packet_size, 0,
+                recvfrom(_socket, &_listen_buffer, packet_size, 0,
                          reinterpret_cast<sockaddr *>(&from), &fromlen);
             if (size == -1) {
                 std::cout << "UDP : Failed to receive data : "
@@ -61,7 +59,7 @@ void UDP::listen(UDPCallback callback) {
                     << std::endl;
             }
             else if (_listen_thread_running) {
-                callback(deserialize_fix(_listen_buffer));
+                callback(_listen_buffer);
             }
         }
     });

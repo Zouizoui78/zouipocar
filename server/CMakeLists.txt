@@ -15,7 +15,6 @@ set(
     SRC
     ${PROJECT_SOURCE_DIR}/src/Database.cpp
     ${PROJECT_SOURCE_DIR}/src/Database.hpp
-    ${PROJECT_SOURCE_DIR}/src/Fix.cpp
     ${PROJECT_SOURCE_DIR}/src/Fix.hpp
     ${PROJECT_SOURCE_DIR}/src/HTTPServer.cpp
     ${PROJECT_SOURCE_DIR}/src/HTTPServer.hpp
