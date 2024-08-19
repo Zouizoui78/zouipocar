@@ -15,7 +15,7 @@ function update(req) {
     const buffer = req.response;
     let fixes = [];
 
-    const fixSize = 14;
+    const fixSize = 13;
     for (i = 0; i < buffer.byteLength; i += fixSize) {
         fixes.push(utils.parseFix(buffer.slice(i, i + fixSize)));
     }

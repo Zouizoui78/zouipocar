@@ -118,60 +118,6 @@ int process_rmc(char *src, Fix *output) {
     return AT_OK;
 }
 
-int process_gga(char *src, Fix *output) {
-    char *token = NULL;
-    char *delim = ",";
-    char *end = NULL;
-    token = strtok(src, delim); // $GNGGA
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Time
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Latitude
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Latitude direction
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Longitude
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Longitude direction
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // GPS Quality indicator
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Number of satellites
-    if (token == NULL) {
-        return AT_GPS_FAIL_SATELLITES;
-    }
-
-    uint8_t satellites = strtol(token, &end, 10);
-    if (errno == ERANGE) {
-        return AT_GPS_FAIL_SATELLITES;
-    }
-
-    output->satellites = satellites;
-
-    return AT_OK;
-}
-
 int get_nmea_data(Fix *output, int (*get_func)(char *),
                   int (*process_func)(char *, Fix *)) {
     char nmea[NMEA_SENTENCE_MAX_SIZE];
@@ -186,9 +132,5 @@ int get_nmea_data(Fix *output, int (*get_func)(char *),
 }
 
 int get_gps_data(Fix *output) {
-    int res = get_nmea_data(output, gps_get_rmc, process_rmc);
-    if (res != AT_OK) {
-        return res;
-    }
-    return get_nmea_data(output, gps_get_gga, process_gga);
+    return get_nmea_data(output, gps_get_rmc, process_rmc);
 }

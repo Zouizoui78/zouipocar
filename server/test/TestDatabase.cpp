@@ -19,7 +19,6 @@ TEST(TestDatabase, test_insert) {
     f.speed = 123;
     f.latitude = 15;
     f.longitude = 30;
-    f.satellites = 5;
 
     bool inserted = db->insert_fix(f);
     auto queried = db->get_fix(1649577294);
@@ -39,7 +38,6 @@ TEST(TestDatabase, test_get_fix) {
     record.speed = 11;
     record.latitude = 48.76424;
     record.longitude = 2.03660;
-    record.satellites = 5;
 
     compare_fixes(record, db.get_fix(1646722281).value());
     ASSERT_FALSE(db.get_fix(1).has_value());
@@ -53,7 +51,6 @@ TEST(TestDatabase, test_get_first_fix) {
     fix.speed = 5;
     fix.latitude = 48.76503;
     fix.longitude = 2.03748;
-    fix.satellites = 6;
 
     compare_fixes(fix, db.get_first_fix().value());
 }
@@ -66,7 +63,6 @@ TEST(TestDatabase, test_get_last_fix) {
     fix.speed = 33;
     fix.latitude = 48.763393;
     fix.longitude = 2.03661;
-    fix.satellites = 7;
 
     compare_fixes(fix, db.get_last_fix().value());
 }

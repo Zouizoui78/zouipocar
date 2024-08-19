@@ -62,17 +62,7 @@ TEST_F(TestHTTPServer, test_static_files) {
 }
 
 TEST_F(TestHTTPServer, test_fix) {
-    auto res = client.Get("/api/fix/first");
-    ASSERT_TRUE(res);
-    EXPECT_EQ(res->status, 200);
-    compare_fixes(deserialize_fix(res->body), db.get_first_fix().value());
-
-    res = client.Get("/api/fix/last");
-    ASSERT_TRUE(res);
-    EXPECT_EQ(res->status, 200);
-    compare_fixes(deserialize_fix(res->body), db.get_last_fix().value());
-
-    res = client.Get("/api/fix?date=1646722281");
+    auto res = client.Get("/api/fix?date=1646722281");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 200);
 
@@ -83,6 +73,20 @@ TEST_F(TestHTTPServer, test_fix) {
     res = client.Get("/api/fix?date=nonesense");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
+}
+
+TEST_F(TestHTTPServer, test_first_fix) {
+    auto res = client.Get("/api/fix/first");
+    ASSERT_TRUE(res);
+    EXPECT_EQ(res->status, 200);
+    compare_fixes(deserialize_fix(res->body), db.get_first_fix().value());
+}
+
+TEST_F(TestHTTPServer, test_last_fix) {
+    auto res = client.Get("/api/fix/last");
+    ASSERT_TRUE(res);
+    EXPECT_EQ(res->status, 200);
+    compare_fixes(deserialize_fix(res->body), db.get_last_fix().value());
 }
 
 TEST_F(TestHTTPServer, test_range) {

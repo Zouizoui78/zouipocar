@@ -64,7 +64,7 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+    res.set_content(reinterpret_cast<const char *>(&*fix), sizeof(Fix),
                     "application/octet-stream");
 }
 
@@ -74,7 +74,7 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+    res.set_content(reinterpret_cast<const char *>(&*fix), sizeof(Fix),
                     "application/octet-stream");
 }
 
@@ -84,7 +84,7 @@ void HTTPServer::api_fix_last(const Request &req, Response &res) {
         res.status = StatusCode::NotFound_404;
         return;
     }
-    res.set_content(reinterpret_cast<const char *>(&fix), sizeof(Fix),
+    res.set_content(reinterpret_cast<const char *>(&*fix), sizeof(Fix),
                     "application/octet-stream");
 }
 

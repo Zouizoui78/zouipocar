@@ -9,7 +9,6 @@ struct Fix {
     float latitude;
     float longitude;
     uint8_t speed;
-    uint8_t satellites;
 };
 #pragma pack(pop)
 

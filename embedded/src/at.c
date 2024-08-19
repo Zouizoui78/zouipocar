@@ -468,7 +468,3 @@ int gps_get_nmea_sentence(char *sentence, char *output) {
 int gps_get_rmc(char *output) {
     return gps_get_nmea_sentence("RMC", output);
 }
-
-int gps_get_gga(char *output) {
-    return gps_get_nmea_sentence("GGA", output);
-}

@@ -22,7 +22,6 @@ utils.parseFix = function (buffer) {
         timestamp: view.getUint32(0, true),
         latitude: view.getFloat32(4, true),
         longitude: view.getFloat32(8, true),
-        speed: view.getUint8(12),
-        satellites: view.getUint8(13)
+        speed: view.getUint8(12)
     };
 }
