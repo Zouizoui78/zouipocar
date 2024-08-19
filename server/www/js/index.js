@@ -1,5 +1,5 @@
 let map;
-let interval;
+let timeout;
 
 ajax.get(
     "api/fix/last",
@@ -13,24 +13,26 @@ ajax.get(
     },
     () => {
         map = new ZouipocarMap([0, 0], true, true);
+    },
+    () => {
+        getLastFix();
     }
 );
 
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState == "visible") {
         getLastFix();
-        interval = setInterval(getLastFix, 1000);
     }
     else {
-        clearInterval(interval);
+        clearTimeout(timeout);
     }
 });
-
-interval = setInterval(getLastFix, 1000);
 
 function getLastFix() {
     ajax.get("api/fix/last", null, "arraybuffer", (req) => {
         onFix(req.response);
+    }, null, () => {
+        timeout = setTimeout(getLastFix, 1000);
     });
 }
 

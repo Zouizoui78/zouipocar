@@ -21,7 +21,7 @@ ajax.x = function () {
     return xhr;
 };
 
-ajax.send = function (url, method, data, responseType, onSuccess, onError) {
+ajax.send = function (url, method, data, responseType, onSuccess, onError, onEnd) {
     if (url[0] == '/')
         url = window.location.origin + url;
 
@@ -38,6 +38,10 @@ ajax.send = function (url, method, data, responseType, onSuccess, onError) {
                 if (onError)
                     onError(x);
             }
+
+            if (onEnd) {
+                onEnd(x);
+            }
         }
     };
     if (method == 'POST' || method == 'PUT')
@@ -53,6 +57,6 @@ ajax.send = function (url, method, data, responseType, onSuccess, onError) {
     x.send(data);
 };
 
-ajax.get = function (url, data, responseType, onSuccess, onError) {
-    ajax.send(url, 'GET', null, responseType, onSuccess, onError);
+ajax.get = function (url, data, responseType, onSuccess, onError, onEnd) {
+    ajax.send(url, 'GET', null, responseType, onSuccess, onError, onEnd);
 };
