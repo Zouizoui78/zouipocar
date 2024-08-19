@@ -1,5 +1,4 @@
 const map = new ZouipocarMap();
-const fixSize = 18;
 let line;
 
 const elem = document.querySelector('input[name="date"]');
@@ -16,6 +15,7 @@ function update(req) {
     const buffer = req.response;
     let fixes = [];
 
+    const fixSize = 14;
     for (i = 0; i < buffer.byteLength; i += fixSize) {
         fixes.push(utils.parseFix(buffer.slice(i, i + fixSize)));
     }
