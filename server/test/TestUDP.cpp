@@ -25,7 +25,6 @@ TEST(TestUDP, test_receiver_callback) {
     fix.longitude = 2.054971;
     fix.speed = 123;
     fix.satellites = 5;
-    fix.altitude = 212;
 
     int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     sockaddr_in addr_in;

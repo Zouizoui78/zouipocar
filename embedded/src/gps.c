@@ -4,6 +4,7 @@
 #include "return_codes.h"
 #include "time_utils.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,7 +23,7 @@ int process_rmc(char *src, Fix *output) {
     }
 
     uint32_t time = strtol(token, &end, 10);
-    if (time == 0) {
+    if (errno == ERANGE) {
         return AT_GPS_FAIL_TIME;
     }
 
@@ -41,6 +42,10 @@ int process_rmc(char *src, Fix *output) {
     }
 
     float latitude = strtod(token, &end);
+    if (errno == ERANGE) {
+        return AT_GPS_FAIL_LATITUDE;
+    }
+
     int deg = latitude / 100;
     latitude = deg + (latitude - deg * 100) / 60;
 
@@ -59,6 +64,10 @@ int process_rmc(char *src, Fix *output) {
     }
 
     float longitude = strtod(token, &end);
+    if (errno == ERANGE) {
+        return AT_GPS_FAIL_LONGITUDE;
+    }
+
     deg = longitude / 100;
     longitude = deg + (longitude - deg * 100) / 60;
 
@@ -76,7 +85,13 @@ int process_rmc(char *src, Fix *output) {
         return AT_GPS_FAIL_PARSE;
     }
 
-    uint8_t speed = strtod(token, &end) * 1.852;
+    uint8_t speed = strtod(token, &end);
+    if (errno == ERANGE) {
+        return AT_GPS_FAIL_SPEED;
+    }
+
+    // Knots to km/h
+    speed *= 1.852;
 
     token = strtok(NULL, delim); // Course Made Good
     if (token == NULL) {
@@ -89,7 +104,7 @@ int process_rmc(char *src, Fix *output) {
     }
 
     uint32_t date = strtol(token, &end, 10);
-    if (date == 0) {
+    if (errno == ERANGE) {
         return AT_GPS_FAIL_DATE;
     }
 
@@ -148,24 +163,11 @@ int process_gga(char *src, Fix *output) {
     }
 
     uint8_t satellites = strtol(token, &end, 10);
-    if (satellites == 0) {
+    if (errno == ERANGE) {
         return AT_GPS_FAIL_SATELLITES;
     }
 
-    token = strtok(NULL, delim); // Horizontal dilution of precision
-    if (token == NULL) {
-        return AT_GPS_FAIL_PARSE;
-    }
-
-    token = strtok(NULL, delim); // Altitude
-    if (token == NULL) {
-        return AT_GPS_FAIL_ALTITUDE;
-    }
-
-    float altitude = strtod(token, &end);
-
     output->satellites = satellites;
-    output->altitude = altitude;
 
     return AT_OK;
 }

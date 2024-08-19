@@ -29,7 +29,7 @@ Database::Database(std::string_view path) {
 void Database::create_table() {
     std::string statement =
         "CREATE TABLE IF NOT EXISTS zoui (timestamp INTEGER, speed INTEGER, "
-        "latitude REAL, longitude REAL, altitude REAL);";
+        "latitude REAL, longitude REAL);";
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr,
                            &_errmsg);
     if (res != SQLITE_OK) {
@@ -39,9 +39,9 @@ void Database::create_table() {
 }
 
 bool Database::insert_fix(Fix fix) {
-    std::string statement = std::format(
-        "INSERT INTO zoui VALUES({}, {}, {}, {}, {});", fix.timestamp,
-        fix.speed, fix.latitude, fix.longitude, fix.altitude);
+    std::string statement =
+        std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp,
+                    fix.speed, fix.latitude, fix.longitude);
     int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr,
                            &_errmsg);
 
@@ -59,7 +59,6 @@ void fix_from_statement(Fix &fix, sqlite3_stmt *stmt) {
     fix.speed = sqlite3_column_int64(stmt, 1);
     fix.latitude = sqlite3_column_double(stmt, 2);
     fix.longitude = sqlite3_column_double(stmt, 3);
-    fix.altitude = sqlite3_column_double(stmt, 4);
 }
 
 std::optional<Fix> Database::get_fix(uint32_t date) {
