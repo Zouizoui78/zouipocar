@@ -123,8 +123,8 @@ class ZouipocarMap {
         const url =
             'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' +
             this.#currentPos[0] + '&lon=' + this.#currentPos[1];
-        ajax.get(url, null, body => {
-            const parsed = JSON.parse(body).address;
+        ajax.get(url, null, "", req => {
+            const parsed = JSON.parse(req.responseText).address;
             if (!parsed) {
                 return;
             }
@@ -139,9 +139,11 @@ class ZouipocarMap {
 
             let addr = parsed.road + ", " + parsed.postcode + " " + town +
                 ", " + parsed.country;
+
             if (parsed.house_number) {
                 addr = parsed.house_number + " " + addr;
             }
+
             this.#carMarker.setPopupContent(popupContent + "<br>" + addr);
         });
     }
