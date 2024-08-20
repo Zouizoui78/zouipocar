@@ -2,7 +2,6 @@
 #define DATABASE_HPP
 
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -43,7 +42,7 @@ private:
 
     void create_table();
 
-    // Return the number of affected rows.
+    // Return the number of affected rows, or -1 in case of error.
     template <typename T> int query(const std::string &statement, T &&callback);
 };
 

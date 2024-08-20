@@ -24,6 +24,7 @@ void HTTPServer::stop() {
 }
 
 void HTTPServer::update_fix(const Fix &fix) {
+    std::lock_guard lock(_last_fix_mutex);
     _last_fix = fix;
 }
 
@@ -46,7 +47,7 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
     std::string date_param = req.get_param_value("date");
     uint32_t date = 0;
     try {
-        date = std::stol(date_param);
+        date = std::stoul(date_param);
     }
     catch (std::invalid_argument &e) {
         res.set_content("Invalid date parameter", "text/plain");
@@ -79,7 +80,13 @@ void HTTPServer::api_fix_first(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
-    auto fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
+    std::optional<Fix> fix(std::nullopt);
+
+    {
+        std::lock_guard lock(_last_fix_mutex);
+        fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
+    }
+
     if (!fix.has_value()) {
         res.status = StatusCode::NotFound_404;
         return;
@@ -98,8 +105,8 @@ void HTTPServer::api_range(const Request &req, Response &res) {
     uint32_t start = 0;
     uint32_t stop = 0;
     try {
-        start = std::stol(req.get_param_value("start"));
-        stop = std::stol(req.get_param_value("stop"));
+        start = std::stoul(req.get_param_value("start"));
+        stop = std::stoul(req.get_param_value("stop"));
     }
     catch (std::invalid_argument &e) {
         res.set_content("Invalid start and/or stop parameter", "text/plain");

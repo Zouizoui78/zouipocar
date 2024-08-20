@@ -1,8 +1,6 @@
 #ifndef HTTPSERVER_HPP
 #define HTTPSERVER_HPP
 
-#include <atomic>
-#include <condition_variable>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -29,6 +27,7 @@ private:
     Database *_db;
     httplib::Server svr;
     std::optional<Fix> _last_fix;
+    std::mutex _last_fix_mutex;
 
     void register_handlers();
     void api_fix(const httplib::Request &req, httplib::Response &res);

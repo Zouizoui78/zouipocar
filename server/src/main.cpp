@@ -1,5 +1,6 @@
 #include <csignal>
 #include <cstring>
+#include <functional>
 #include <iostream>
 
 #include "Database.hpp"

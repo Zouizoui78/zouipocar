@@ -28,7 +28,7 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
 
 UDP::~UDP() {
     _listen_thread_running = false;
-    shutdown(_socket, SHUT_RDWR); // Interrupt blocking recvfrom.
+    shutdown(_socket, SHUT_RD); // Interrupt blocking recvfrom.
     ::close(_socket);
 }
 
@@ -38,15 +38,12 @@ void UDP::listen(UDPCallback callback) {
     }
 
     _listen_thread = std::jthread([this, callback]() {
-        sockaddr_in from;
-        socklen_t fromlen = sizeof from;
         size_t packet_size = sizeof(Fix);
-
         _listen_thread_running = true;
+
         while (_listen_thread_running) {
             ssize_t size =
-                recvfrom(_socket, &_listen_buffer, packet_size, 0,
-                         reinterpret_cast<sockaddr *>(&from), &fromlen);
+                recvfrom(_socket, &_listen_buffer, packet_size, 0, nullptr, nullptr);
             if (size == -1) {
                 std::cout << "UDP : Failed to receive data : "
                           << strerror(errno) << std::endl;

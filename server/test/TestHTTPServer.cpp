@@ -2,8 +2,13 @@
 
 #include "Database.hpp"
 #include "HTTPServer.hpp"
-#include "constants.hpp"
 #include "test_tools.hpp"
+
+#include <cstdint>
+#include <format>
+#include <fstream>
+#include <thread>
+#include <vector>
 
 using namespace zouipocar;
 using namespace zouipocar_test;
@@ -24,11 +29,11 @@ std::vector<Fix> deserialize_fixes(const std::string &f) {
 class TestHTTPServer : public ::testing::Test {
 protected:
     TestHTTPServer()
-        : db(path), server("www", &db), client("localhost", ZOUIPOCAR_PORT) {}
+        : db(path), server("www", &db), client("localhost", 9999) {}
 
     void SetUp() override {
         server_thread = std::jthread([this]() {
-            server.listen("0.0.0.0", ZOUIPOCAR_PORT);
+            server.listen("0.0.0.0", 9999);
         });
         server.wait_until_ready();
     }
@@ -71,6 +76,11 @@ TEST_F(TestHTTPServer, test_fix) {
     EXPECT_EQ(res->status, 404);
 
     res = client.Get("/api/fix?date=nonesense");
+    ASSERT_TRUE(res);
+    EXPECT_EQ(res->status, 400);
+
+    std::cout << uint64_t(0) - 1 << std::endl;
+    res = client.Get("/api/fix?date=111111111111111111111");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 }

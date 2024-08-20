@@ -18,9 +18,11 @@ Database::Database(std::string_view path) {
     _handle = std::unique_ptr<sqlite3, Sqlite3Deleter>(handle);
 
     res = sqlite3_exec(_handle.get(), "PRAGMA synchronous = OFF", nullptr,
-                       nullptr, nullptr);
+                       nullptr, &_errmsg);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to disable fs sync for database.\n";
+        std::cout << "Failed to disable fs sync for database : " << _errmsg
+                  << std::endl;
+        sqlite3_free(_errmsg);
     }
 
     create_table();
@@ -35,6 +37,7 @@ void Database::create_table() {
     if (res != SQLITE_OK) {
         throw std::runtime_error(
             std::format("Failed to create table zoui : {}", _errmsg));
+        sqlite3_free(_errmsg);
     }
 }
 
@@ -46,8 +49,6 @@ bool Database::insert_fix(Fix fix) {
                            &_errmsg);
 
     if (res != SQLITE_OK) {
-        std::cout << "Failed to insert fix into zoui : " << _errmsg
-                  << std::endl;
         return false;
     }
 
@@ -124,9 +125,10 @@ int Database::query(const std::string &statement, T &&callback) {
     int res = sqlite3_prepare_v2(_handle.get(), statement.c_str(), -1, &stmt,
                                  nullptr);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to prepare SQL statement : "
-                  << sqlite3_errmsg(_handle.get()) << std::endl;
-        return false;
+        throw std::runtime_error(
+            std::format("Failed to prepare SQL statement : {}",
+                        sqlite3_errmsg(_handle.get())));
+        return -1;
     }
 
     res = sqlite3_step(stmt);
@@ -135,6 +137,13 @@ int Database::query(const std::string &statement, T &&callback) {
         callback(stmt);
         res = sqlite3_step(stmt);
         ++count;
+    }
+
+    if (res != SQLITE_DONE) {
+        throw std::runtime_error(std::format(
+            "Sqlite statement '{}' encountered error on step {} : {}",
+            statement, count, sqlite3_errmsg(_handle.get())));
+        return -1;
     }
 
     sqlite3_finalize(stmt);
