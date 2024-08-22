@@ -42,8 +42,8 @@ void UDP::listen(UDPCallback callback) {
         _listen_thread_running = true;
 
         while (_listen_thread_running) {
-            ssize_t size =
-                recvfrom(_socket, &_listen_buffer, packet_size, 0, nullptr, nullptr);
+            ssize_t size = recvfrom(_socket, &_listen_buffer, packet_size, 0,
+                                    nullptr, nullptr);
             if (size == -1) {
                 std::cout << "UDP : Failed to receive data : "
                           << strerror(errno) << std::endl;

@@ -125,9 +125,8 @@ int Database::query(const std::string &statement, T &&callback) {
     int res = sqlite3_prepare_v2(_handle.get(), statement.c_str(), -1, &stmt,
                                  nullptr);
     if (res != SQLITE_OK) {
-        throw std::runtime_error(
-            std::format("Failed to prepare SQL statement : {}",
-                        sqlite3_errmsg(_handle.get())));
+        std::cout << "Failed to prepare SQL statement : "
+                  << sqlite3_errmsg(_handle.get()) << std::endl;
         return -1;
     }
 
@@ -140,9 +139,9 @@ int Database::query(const std::string &statement, T &&callback) {
     }
 
     if (res != SQLITE_DONE) {
-        throw std::runtime_error(std::format(
-            "Sqlite statement '{}' encountered error on step {} : {}",
-            statement, count, sqlite3_errmsg(_handle.get())));
+        std::cout << "Sqlite statement '" << statement
+                  << "' encountered error on step #" << count << " : "
+                  << sqlite3_errmsg(_handle.get());
         return -1;
     }
 
