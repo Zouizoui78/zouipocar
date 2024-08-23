@@ -17,7 +17,7 @@ public:
     Database(std::string_view path);
 
     // Return false if insertion fails, true otherwise.
-    bool insert_fix(Fix fix);
+    bool insert_fix(const Fix &fix);
 
     // Return the fix if found, std::nullopt otherwise.
     std::optional<Fix> get_fix(uint32_t date);

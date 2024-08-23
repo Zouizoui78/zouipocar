@@ -41,7 +41,7 @@ void Database::create_table() {
     }
 }
 
-bool Database::insert_fix(Fix fix) {
+bool Database::insert_fix(const Fix &fix) {
     std::string statement =
         std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp,
                     fix.speed, fix.latitude, fix.longitude);
@@ -110,9 +110,10 @@ std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
     query(std::format("SELECT * FROM zoui WHERE timestamp BETWEEN {} AND {};",
                       start, end),
           [this, &ret](sqlite3_stmt *stmt) {
-              Fix f;
-              fix_from_statement(f, stmt);
-              ret.push_back(f);
+              ret.emplace_back(sqlite3_column_int64(stmt, 0),
+                               sqlite3_column_double(stmt, 2),
+                               sqlite3_column_double(stmt, 3),
+                               sqlite3_column_int64(stmt, 1));
           });
 
     return ret;

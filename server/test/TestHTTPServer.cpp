@@ -79,7 +79,6 @@ TEST_F(TestHTTPServer, test_fix) {
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);
 
-    std::cout << uint64_t(0) - 1 << std::endl;
     res = client.Get("/api/fix?date=111111111111111111111");
     ASSERT_TRUE(res);
     EXPECT_EQ(res->status, 400);

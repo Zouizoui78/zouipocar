@@ -29,13 +29,14 @@ int main(void) {
             return;
         }
 
+        svr.update_fix(fix);
+
         // Don't store fix in DB if the tracker is not (or barely) moving.
         if (fix.speed > 5) {
             db.insert_fix(fix);
         }
 
         last_fix = fix;
-        svr.update_fix(fix);
     });
 
     signal_handler = [&svr](int signal) {

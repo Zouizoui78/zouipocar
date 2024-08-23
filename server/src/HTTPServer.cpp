@@ -9,6 +9,10 @@ using namespace httplib;
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     register_handlers();
     svr.set_mount_point("/", std::string(web_ui_path));
+
+    _first_fix = _db->get_first_fix();
+    std::lock_guard lock(_last_fix_mutex);
+    _last_fix = _db->get_last_fix();
 }
 
 bool HTTPServer::listen(const std::string &addr, int port) {
@@ -70,28 +74,13 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_fix_first(const Request &req, Response &res) {
-    auto fix = _db->get_first_fix();
-    if (!fix.has_value()) {
-        res.status = StatusCode::NotFound_404;
-        return;
-    }
-    res.set_content(reinterpret_cast<const char *>(&*fix), sizeof(Fix),
+    res.set_content(reinterpret_cast<const char *>(&*_first_fix), sizeof(Fix),
                     "application/octet-stream");
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
-    std::optional<Fix> fix(std::nullopt);
-
-    {
-        std::lock_guard lock(_last_fix_mutex);
-        fix = _last_fix.has_value() ? _last_fix : _db->get_last_fix();
-    }
-
-    if (!fix.has_value()) {
-        res.status = StatusCode::NotFound_404;
-        return;
-    }
-    res.set_content(reinterpret_cast<const char *>(&*fix), sizeof(Fix),
+    std::lock_guard lock(_last_fix_mutex);
+    res.set_content(reinterpret_cast<const char *>(&*_last_fix), sizeof(Fix),
                     "application/octet-stream");
 }
 

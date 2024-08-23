@@ -26,6 +26,7 @@ public:
 private:
     Database *_db;
     httplib::Server svr;
+    std::optional<Fix> _first_fix;
     std::optional<Fix> _last_fix;
     std::mutex _last_fix_mutex;
 
