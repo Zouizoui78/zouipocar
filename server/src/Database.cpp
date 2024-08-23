@@ -142,7 +142,7 @@ int Database::query(const std::string &statement, T &&callback) {
     if (res != SQLITE_DONE) {
         std::cout << "Sqlite statement '" << statement
                   << "' encountered error on step #" << count << " : "
-                  << sqlite3_errmsg(_handle.get());
+                  << sqlite3_errmsg(_handle.get()) << std::endl;
         return -1;
     }
 
