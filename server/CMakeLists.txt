@@ -31,15 +31,17 @@ target_include_directories(zouipocar PUBLIC external)
 find_package(SQLite3 REQUIRED)
 target_link_libraries(zouipocar PRIVATE SQLite::SQLite3)
 
-add_executable(zouipocar_exe src/main.cpp)
+add_executable(zouipocar-exe src/main.cpp)
 
-target_link_libraries(zouipocar_exe zouipocar)
+target_link_libraries(zouipocar-exe PRIVATE zouipocar)
 
-set_property(TARGET zouipocar_exe PROPERTY OUTPUT_NAME zouipocar)
+set_property(TARGET zouipocar-exe PROPERTY OUTPUT_NAME zouipocar)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     if (ZOUIPOCAR_TESTS)
         include(CTest)
         add_subdirectory(test)
+        target_compile_options(zouipocar PRIVATE --coverage -g -O0)
+        target_link_libraries(zouipocar PRIVATE gcov)
     endif (ZOUIPOCAR_TESTS)
 endif()
