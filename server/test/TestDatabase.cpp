@@ -24,7 +24,7 @@ TEST(TestDatabase, test_insert) {
     auto queried = db->get_fix(1649577294);
 
     ASSERT_TRUE(inserted);
-    compare_fixes(f, *queried);
+    expect_fix_eq(f, *queried);
 
     delete db;
     std::filesystem::remove(path);
@@ -39,7 +39,7 @@ TEST(TestDatabase, test_get_fix) {
     record.latitude = 48.76424;
     record.longitude = 2.03660;
 
-    compare_fixes(record, db.get_fix(1646722281).value());
+    expect_fix_eq(record, db.get_fix(1646722281).value());
     ASSERT_FALSE(db.get_fix(1).has_value());
 }
 
@@ -52,7 +52,7 @@ TEST(TestDatabase, test_get_first_fix) {
     fix.latitude = 48.76503;
     fix.longitude = 2.03748;
 
-    compare_fixes(fix, db.get_first_fix().value());
+    expect_fix_eq(fix, db.get_first_fix().value());
 }
 
 TEST(TestDatabase, test_get_last_fix) {
@@ -64,7 +64,7 @@ TEST(TestDatabase, test_get_last_fix) {
     fix.latitude = 48.763393;
     fix.longitude = 2.03661;
 
-    compare_fixes(fix, db.get_last_fix().value());
+    expect_fix_eq(fix, db.get_last_fix().value());
 }
 
 TEST(TestDatabase, test_get_fix_range) {

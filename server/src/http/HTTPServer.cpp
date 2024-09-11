@@ -1,10 +1,12 @@
 #include "HTTPServer.hpp"
 #include "Database.hpp"
+#include "ErrorMessages.hpp"
 
-namespace zouipocar {
+namespace zouipocar::http {
 
 using namespace std::placeholders;
 using namespace httplib;
+using namespace zouipocar;
 
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     register_handlers();
@@ -43,7 +45,7 @@ void HTTPServer::register_handlers() {
 
 void HTTPServer::api_fix(const Request &req, Response &res) {
     if (!req.has_param("date")) {
-        res.set_content("Missing date parameter", "text/plain");
+        res.set_content(ErrorMessages::api_fix_missing_parameter, "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -54,12 +56,13 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
         date = std::stoul(date_param);
     }
     catch (std::invalid_argument &e) {
-        res.set_content("Invalid date parameter", "text/plain");
+        res.set_content(ErrorMessages::api_fix_invalid_parameter, "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
     catch (std::out_of_range &e) {
-        res.set_content("Out of range date parameter", "text/plain");
+        res.set_content(ErrorMessages::api_fix_out_of_range_parameter,
+                        "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -74,19 +77,31 @@ void HTTPServer::api_fix(const Request &req, Response &res) {
 }
 
 void HTTPServer::api_fix_first(const Request &req, Response &res) {
+    if (!_first_fix.has_value()) [[unlikely]] {
+        res.status = StatusCode::NotFound_404;
+        return;
+    }
+
     res.set_content(reinterpret_cast<const char *>(&*_first_fix), sizeof(Fix),
                     "application/octet-stream");
 }
 
 void HTTPServer::api_fix_last(const Request &req, Response &res) {
     std::lock_guard lock(_last_fix_mutex);
+
+    if (!_last_fix.has_value()) [[unlikely]] {
+        res.status = StatusCode::NotFound_404;
+        return;
+    }
+
     res.set_content(reinterpret_cast<const char *>(&*_last_fix), sizeof(Fix),
                     "application/octet-stream");
 }
 
 void HTTPServer::api_range(const Request &req, Response &res) {
     if (!req.has_param("start") || !req.has_param("stop")) {
-        res.set_content("Missing start and/or stop parameter", "text/plain");
+        res.set_content(ErrorMessages::api_range_missing_parameter,
+                        "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -98,21 +113,20 @@ void HTTPServer::api_range(const Request &req, Response &res) {
         stop = std::stoul(req.get_param_value("stop"));
     }
     catch (std::invalid_argument &e) {
-        res.set_content("Invalid start and/or stop parameter", "text/plain");
+        res.set_content(ErrorMessages::api_range_invalid_parameter,
+                        "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
     catch (std::out_of_range &e) {
-        res.set_content("Out of range start and/or stop parameter",
+        res.set_content(ErrorMessages::api_range_out_of_range_parameter,
                         "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
 
     if (start >= stop) {
-        res.set_content(
-            "start parameter must be strictly less than stop parameter",
-            "text/plain");
+        res.set_content(ErrorMessages::api_range_invalid_range, "text/plain");
         res.status = StatusCode::BadRequest_400;
         return;
     }
@@ -122,4 +136,4 @@ void HTTPServer::api_range(const Request &req, Response &res) {
                     sizeof(Fix) * fixes.size(), "application/octet-stream");
 }
 
-} // namespace zouipocar
+} // namespace zouipocar::http

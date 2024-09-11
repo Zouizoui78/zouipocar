@@ -38,5 +38,5 @@ TEST(TestUDP, test_receiver_callback) {
 
     ASSERT_NE(res, -1);
     ASSERT_TRUE(callback_called);
-    compare_fixes(fix, received);
+    expect_fix_eq(fix, received);
 }

@@ -6,7 +6,7 @@
 namespace zouipocar_test {
 
 // Compare each of the fixes members.
-void compare_fixes(const Fix &first, const Fix &second);
+void expect_fix_eq(const Fix &first, const Fix &second);
 
 } // namespace zouipocar_test
 

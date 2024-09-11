@@ -9,8 +9,10 @@
 #include "httplib.h"
 
 namespace zouipocar {
-
 class Database;
+}
+
+namespace zouipocar::http {
 
 class HTTPServer {
 public:
@@ -37,6 +39,6 @@ private:
     void api_range(const httplib::Request &req, httplib::Response &res);
 };
 
-} // namespace zouipocar
+} // namespace zouipocar::http
 
 #endif

@@ -16,8 +16,10 @@ set(
     ${PROJECT_SOURCE_DIR}/src/Database.cpp
     ${PROJECT_SOURCE_DIR}/src/Database.hpp
     ${PROJECT_SOURCE_DIR}/src/Fix.hpp
-    ${PROJECT_SOURCE_DIR}/src/HTTPServer.cpp
-    ${PROJECT_SOURCE_DIR}/src/HTTPServer.hpp
+    ${PROJECT_SOURCE_DIR}/src/http/ErrorMessages.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/ErrorMessages.hpp
+    ${PROJECT_SOURCE_DIR}/src/http/HTTPServer.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/HTTPServer.hpp
     ${PROJECT_SOURCE_DIR}/src/UDP.cpp
     ${PROJECT_SOURCE_DIR}/src/UDP.hpp
     ${PROJECT_SOURCE_DIR}/external/httplib.cpp
@@ -26,6 +28,7 @@ set(
 
 add_library(zouipocar STATIC ${SRC})
 
+target_include_directories(zouipocar PUBLIC src)
 target_include_directories(zouipocar PUBLIC external)
 
 find_package(SQLite3 REQUIRED)

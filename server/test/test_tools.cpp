@@ -3,7 +3,7 @@
 
 namespace zouipocar_test {
 
-void compare_fixes(const Fix &first, const Fix &second) {
+void expect_fix_eq(const Fix &first, const Fix &second) {
     EXPECT_EQ(first.timestamp, second.timestamp);
     EXPECT_EQ(first.speed, second.speed);
     EXPECT_NEAR(first.latitude, second.latitude, 1e-5);

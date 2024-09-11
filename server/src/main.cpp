@@ -5,9 +5,9 @@
 
 #include "Database.hpp"
 #include "Fix.hpp"
-#include "HTTPServer.hpp"
 #include "UDP.hpp"
 #include "constants.hpp"
+#include "http/HTTPServer.hpp"
 
 std::function<void(int)> signal_handler;
 void c_signal_handler(int signal) {
@@ -22,7 +22,7 @@ int main(void) {
     zouipocar::Database db(zouipocar::DB_PATH);
     auto last_fix = db.get_last_fix();
 
-    zouipocar::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
+    zouipocar::http::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);
 
     zouipocar::UDP udp(ZOUIPOCAR_PORT, [&last_fix, &db, &svr](const Fix &fix) {
         if (last_fix.has_value() && fix.timestamp <= last_fix->timestamp) {
