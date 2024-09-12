@@ -41,3 +41,7 @@ During debug the Uno and shield pins must be linked as described above. Addition
 - Another input (Logic Analyzer) <=> D1 (Uno)
 
 The logic analyzer can then most likely be used with the [Salae Logic](https://support.saleae.com/logic-software) software ([AUR package](https://aur.archlinux.org/packages/saleae-logic2)).
+
+## Flash
+
+    make flash

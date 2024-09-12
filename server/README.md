@@ -2,6 +2,21 @@
 
 This is the server programs of zouipocar that receives the data sent by the tracking device, stores it and displays it on a map.
 
-## Dependencies
+## Build
+### Debug
 
-- [cpp-httplib](https://github.com/yhirose/cpp-httplib) ([aur](https://aur.archlinux.org/packages/cpp-httplib-compiled))
+    cmake -B build
+    cmake --build build
+
+In this configuration code coverage data is generated. The data can be viewed with e.g. `gcovr` if installed :
+
+    gcovr -r src build
+
+## Release
+
+    cmake -B build -DCMAKE_BUILD_TYPE=release -DZOUIPOCAR_TESTS=OFF
+    cmake --build build
+
+## Packaging
+
+    ./scripts/package.sh
