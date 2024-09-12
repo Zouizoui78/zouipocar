@@ -26,7 +26,7 @@ private:
 
     int _socket;
     std::jthread _listen_thread;
-    bool _listen_thread_running = false;
+    std::atomic_bool _listen_thread_running = false;
     Fix _listen_buffer;
 };
 

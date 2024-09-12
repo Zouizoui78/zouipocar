@@ -19,11 +19,22 @@ UDP::UDP(uint16_t port, UDPCallback callback) {
     addr.sin_port = htons(port);
     addr.sin_family = AF_INET;
 
-    if (bind(_socket, reinterpret_cast<sockaddr *>(&addr), sizeof addr) != 0) {
+    if (bind(_socket, reinterpret_cast<sockaddr *>(&addr), sizeof(addr)) != 0) {
         throw std::runtime_error("Failed to bind UDP socket");
     }
 
     listen(callback);
+
+    // If the destructor is called before the thread starts, we get into a
+    // deadlock because the socket is closed and recvfrom returns immediately,
+    // causing an infinite loop since _listen_thread_running is stuck to true.
+    // So we wait until _listen_thread_running == true here to avoid this
+    // deadlock.
+    // This stupid while loop is enough here because the only way to have this
+    // hanging would be that the thread fails to spawn and reach the line
+    // _listen_thread_running = true;
+    while (!_listen_thread_running)
+        ;
 }
 
 UDP::~UDP() {
