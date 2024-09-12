@@ -6,7 +6,6 @@ namespace zouipocar::http {
 
 using namespace std::placeholders;
 using namespace httplib;
-using namespace zouipocar;
 
 HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     register_handlers();

@@ -6,7 +6,6 @@
 #include "test_tools.hpp"
 
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -188,10 +187,8 @@ TEST_F(TestHTTPServer, test_range_out_of_range_parameter) {
         EXPECT_EQ(res->body, ErrorMessages::api_range_out_of_range_parameter);
     };
 
-    check_res(
-        client.Get("/api/range?start=111111111111111111111&stop=1646722277"));
-    check_res(
-        client.Get("/api/range?start=1646722277&stop=111111111111111111111"));
+    check_res(client.Get("/api/range?start=111111111111111111111&stop=123"));
+    check_res(client.Get("/api/range?start=123&stop=111111111111111111111"));
     check_res(client.Get(
         "/api/range?start=111111111111111111111&stop=111111111111111111111"));
 }
@@ -203,13 +200,16 @@ TEST_F(TestHTTPServer, test_range_invalid_range) {
         EXPECT_EQ(res->body, ErrorMessages::api_range_invalid_range);
     };
 
-    check_res(client.Get("/api/range?start=1646722277&stop=1646722277"));
-    check_res(client.Get("/api/range?start=1646722278&stop=1646722277"));
+    check_res(client.Get("/api/range?start=123&stop=123"));
+    check_res(client.Get("/api/range?start=124&stop=123"));
 }
 
 TEST_F(TestHTTPServer, test_update_fix) {
+    auto res = empty_db_client.Get("/api/fix/last");
+    ASSERT_EQ(res->status, 404);
+
     Fix f{1, 2, 3, 4};
-    server.update_fix(f);
-    auto res = client.Get("/api/fix/last");
+    empty_db_server.update_fix(f);
+    res = empty_db_client.Get("/api/fix/last");
     expect_fix_eq(f, deserialize_fix(res->body));
 }
