@@ -3,6 +3,13 @@
 This is the server programs of zouipocar that receives the data sent by the tracking device, stores it and displays it on a map.
 
 ## Build
+## Build dependencies
+
+- gcc >= 13
+- cmake >= 3.5
+- sqlite3
+- gtest
+
 ### Debug
 
     cmake -B build
