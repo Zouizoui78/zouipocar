@@ -63,13 +63,13 @@ int main(void) {
         while (ip_status != AT_IPSTATE_CONNECT_OK) {
             connected_sms_sent = 0;
             if (connection_lost_sms_sent == 0) {
-                send_sms(PHONE, "Not connected to server");
+                // send_sms(PHONE, "Not connected to server");
                 connection_lost_sms_sent = 1;
             }
 
             if (ip_status != AT_IPSTATE_INITIAL) {
                 if (trying_to_connect_sms_sent == 0) {
-                    send_sms(PHONE, "Trying to enter IP INITIAL state");
+                    // send_sms(PHONE, "Trying to enter IP INITIAL state");
                     trying_to_connect_sms_sent = 1;
                 }
                 // This should put the system back in IP INITIAL
@@ -87,7 +87,7 @@ int main(void) {
         }
 
         if (connected_sms_sent == 0) {
-            send_sms(PHONE, "Connected to server");
+            // send_sms(PHONE, "Connected to server");
             connected_sms_sent = 1;
             connection_lost_sms_sent = 0;
             trying_to_connect_sms_sent = 0;
