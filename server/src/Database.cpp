@@ -42,11 +42,11 @@ void Database::create_table() {
 }
 
 bool Database::insert_fix(const Fix &fix) {
-    std::string statement =
+    std::string query =
         std::format("INSERT INTO zoui VALUES({}, {}, {}, {});", fix.timestamp,
                     fix.speed, fix.latitude, fix.longitude);
-    int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr,
-                           &_errmsg);
+    int res =
+        sqlite3_exec(_handle.get(), query.c_str(), nullptr, nullptr, &_errmsg);
 
     if (res != SQLITE_OK) {
         return false;
@@ -55,18 +55,19 @@ bool Database::insert_fix(const Fix &fix) {
     return true;
 }
 
-void fix_from_statement(Fix &fix, sqlite3_stmt *stmt) {
-    fix.timestamp = sqlite3_column_int64(stmt, 0);
-    fix.speed = sqlite3_column_int64(stmt, 1);
-    fix.latitude = sqlite3_column_double(stmt, 2);
-    fix.longitude = sqlite3_column_double(stmt, 3);
+Fix fix_from_statement(sqlite3_stmt *stmt) {
+    return Fix{.timestamp =
+                   static_cast<uint32_t>(sqlite3_column_int64(stmt, 0)),
+               .latitude = static_cast<float>(sqlite3_column_double(stmt, 2)),
+               .longitude = static_cast<float>(sqlite3_column_double(stmt, 3)),
+               .speed = static_cast<uint8_t>(sqlite3_column_int64(stmt, 1))};
 }
 
 std::optional<Fix> Database::get_fix(uint32_t date) {
     Fix fix;
     int n = query(std::format("SELECT * FROM zoui WHERE timestamp={};", date),
-                  [this, &fix](sqlite3_stmt *stmt) {
-                      fix_from_statement(fix, stmt);
+                  [&fix](sqlite3_stmt *stmt) {
+                      fix = fix_from_statement(stmt);
                   });
 
     if (n == 0) {
@@ -78,9 +79,8 @@ std::optional<Fix> Database::get_fix(uint32_t date) {
 
 std::optional<Fix> Database::get_first_fix() {
     Fix fix;
-    int n =
-        query("SELECT * FROM zoui LIMIT 1;", [this, &fix](sqlite3_stmt *stmt) {
-            fix_from_statement(fix, stmt);
+    int n = query("SELECT * FROM zoui LIMIT 1;", [&fix](sqlite3_stmt *stmt) {
+        fix = fix_from_statement(stmt);
         });
 
     if (n == 0) {
@@ -93,8 +93,8 @@ std::optional<Fix> Database::get_first_fix() {
 std::optional<Fix> Database::get_last_fix() {
     Fix fix;
     int n = query("SELECT * FROM zoui ORDER BY timestamp DESC LIMIT 1;",
-                  [this, &fix](sqlite3_stmt *stmt) {
-                      fix_from_statement(fix, stmt);
+                  [&fix](sqlite3_stmt *stmt) {
+                      fix = fix_from_statement(stmt);
                   });
 
     if (n == 0) {
@@ -106,15 +106,14 @@ std::optional<Fix> Database::get_last_fix() {
 
 std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
     std::vector<Fix> ret;
+    ret.reserve(end - start);
 
     query(std::format("SELECT * FROM zoui WHERE timestamp BETWEEN {} AND {};",
                       start, end),
-          [this, &ret](sqlite3_stmt *stmt) {
-              ret.emplace_back(sqlite3_column_int64(stmt, 0),
-                               sqlite3_column_double(stmt, 2),
-                               sqlite3_column_double(stmt, 3),
-                               sqlite3_column_int64(stmt, 1));
+          [&ret](sqlite3_stmt *stmt) {
+              ret.push_back(fix_from_statement(stmt));
           });
+    ret.shrink_to_fit();
 
     return ret;
 }
@@ -123,10 +122,10 @@ template <typename T>
 int Database::query(const std::string &statement, T &&callback) {
     sqlite3_stmt *stmt = nullptr;
 
-    int res = sqlite3_prepare_v2(_handle.get(), statement.c_str(), -1, &stmt,
-                                 nullptr);
+    int res =
+        sqlite3_prepare_v2(_handle.get(), query.c_str(), -1, &stmt, nullptr);
     if (res != SQLITE_OK) {
-        std::cout << "Failed to prepare SQL statement : "
+        std::cout << "Failed to prepare SQL query : "
                   << sqlite3_errmsg(_handle.get()) << std::endl;
         return -1;
     }
@@ -140,7 +139,7 @@ int Database::query(const std::string &statement, T &&callback) {
     }
 
     if (res != SQLITE_DONE) {
-        std::cout << "Sqlite statement '" << statement
+        std::cout << "Sqlite query '" << query
                   << "' encountered error on step #" << count << " : "
                   << sqlite3_errmsg(_handle.get()) << std::endl;
         return -1;
