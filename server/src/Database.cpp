@@ -29,11 +29,14 @@ Database::Database(std::string_view path) {
 }
 
 void Database::create_table() {
-    std::string statement =
-        "CREATE TABLE IF NOT EXISTS zoui (timestamp INTEGER, speed INTEGER, "
-        "latitude REAL, longitude REAL);";
-    int res = sqlite3_exec(_handle.get(), statement.c_str(), nullptr, nullptr,
-                           &_errmsg);
+    std::string query = "CREATE TABLE IF NOT EXISTS zoui ("
+                        "timestamp INTEGER PRIMARY KEY NOT NULL UNIQUE,"
+                        "speed INTEGER,"
+                        "latitude REAL,"
+                        "longitude REAL"
+                        ");";
+    int res =
+        sqlite3_exec(_handle.get(), query.c_str(), nullptr, nullptr, &_errmsg);
     if (res != SQLITE_OK) {
         throw std::runtime_error(
             std::format("Failed to create table zoui : {}", _errmsg));
