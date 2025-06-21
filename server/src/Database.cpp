@@ -81,7 +81,7 @@ std::optional<Fix> Database::get_first_fix() {
     Fix fix;
     int n = query("SELECT * FROM zoui LIMIT 1;", [&fix](sqlite3_stmt *stmt) {
         fix = fix_from_statement(stmt);
-        });
+    });
 
     if (n == 0) {
         return std::nullopt;
@@ -119,7 +119,7 @@ std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
 }
 
 template <typename T>
-int Database::query(const std::string &statement, T &&callback) {
+int Database::query(const std::string &query, T &&callback) {
     sqlite3_stmt *stmt = nullptr;
 
     int res =
