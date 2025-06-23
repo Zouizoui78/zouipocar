@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(
@@ -13,8 +13,8 @@ option(ZOUIPOCAR_TESTS "Build unit tests" ON)
 
 set(
     SRC
-    ${PROJECT_SOURCE_DIR}/src/Database.cpp
-    ${PROJECT_SOURCE_DIR}/src/Database.hpp
+    ${PROJECT_SOURCE_DIR}/src/db/SQLiteStatement.cpp
+    ${PROJECT_SOURCE_DIR}/src/db/SQLiteStatement.hpp
     ${PROJECT_SOURCE_DIR}/src/Fix.hpp
     ${PROJECT_SOURCE_DIR}/src/http/ErrorMessages.cpp
     ${PROJECT_SOURCE_DIR}/src/http/ErrorMessages.hpp
