@@ -97,12 +97,9 @@ bool Database::insert_fix(const Fix &fix) {
         return false;
     }
 
-    if (stmt.step() != SQLITE_DONE) {
-        stmt.reset();
-        return false;
-    }
-
-    return true;
+    int res = stmt.step();
+    stmt.reset();
+    return res != SQLITE_DONE;
 }
 
 std::optional<Fix> Database::get_fix(uint32_t date) {
@@ -167,6 +164,7 @@ std::vector<Fix> Database::get_fix_range(uint32_t start, uint32_t end) {
     });
     ret.shrink_to_fit();
 
+    stmt.reset();
     return ret;
 }
 
