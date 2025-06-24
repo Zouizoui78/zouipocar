@@ -24,11 +24,11 @@ TEST(TestDatabase, test_insert) {
     bool inserted = db->insert_fix(f);
     auto queried = db->get_fix(1649577294);
 
-    ASSERT_TRUE(inserted);
-    expect_fix_eq(f, *queried);
-
     delete db;
     std::filesystem::remove(path);
+
+    ASSERT_TRUE(inserted);
+    expect_fix_eq(f, *queried);
 }
 
 TEST(TestDatabase, test_get_fix) {
