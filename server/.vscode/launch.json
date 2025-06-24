@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(ctest) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "cwd": "${cmake.testWorkingDirectory}",
+            "program": "${cmake.testProgram}",
+            "args": [
+                "${cmake.testArgs}"
+            ],
+            "environment": [
+                {
+                    "name": "TEST_OUTPUT_DIR",
+                    "value": "build/test_output"
+                }
+            ]
+        }
+    ]
+}
