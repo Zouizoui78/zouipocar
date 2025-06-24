@@ -28,6 +28,14 @@ sqlite3_stmt *SQLiteStatement::get() const {
     return _prepared.get();
 }
 
+int SQLiteStatement::step() const {
+    return sqlite3_step(this->get());
+}
+
+bool SQLiteStatement::reset() const {
+    return sqlite3_reset(_prepared.get()) == SQLITE_OK;
+}
+
 void SQLiteStatement::SQLiteStatementDeleter::operator()(sqlite3_stmt *stmt) {
     sqlite3_finalize(stmt);
 }

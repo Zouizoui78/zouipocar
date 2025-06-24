@@ -1,4 +1,4 @@
-#include "Database.hpp"
+#include "db/Database.hpp"
 #include "test_tools.hpp"
 #include "gtest/gtest.h"
 
@@ -6,6 +6,7 @@
 #include <vector>
 
 using namespace zouipocar;
+using namespace zouipocar::db;
 using namespace zouipocar_test;
 
 TEST(TestDatabase, test_insert) {

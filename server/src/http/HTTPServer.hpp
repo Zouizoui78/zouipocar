@@ -8,7 +8,7 @@
 #include "Fix.hpp"
 #include "httplib.h"
 
-namespace zouipocar {
+namespace zouipocar::db {
 class Database;
 }
 
@@ -17,16 +17,16 @@ namespace zouipocar::http {
 class HTTPServer {
 public:
     // Doesn't take owernship of db.
-    HTTPServer(std::string_view web_ui_path, Database *db);
+    HTTPServer(std::string_view web_ui_path, db::Database *db);
 
-    bool listen(const std::string &addr, int port);
+    bool listen(std::string_view addr, int port);
     void wait_until_ready();
     void stop();
 
     void update_fix(const Fix &fix);
 
 private:
-    Database *_db;
+    db::Database *_db;
     httplib::Server svr;
     std::optional<Fix> _first_fix;
     std::optional<Fix> _last_fix;

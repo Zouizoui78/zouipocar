@@ -1,13 +1,14 @@
 #include "HTTPServer.hpp"
-#include "Database.hpp"
 #include "ErrorMessages.hpp"
+#include "db/Database.hpp"
 
 namespace zouipocar::http {
 
 using namespace std::placeholders;
 using namespace httplib;
 
-HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
+HTTPServer::HTTPServer(std::string_view web_ui_path, db::Database *db)
+    : _db(db) {
     register_handlers();
     svr.set_mount_point("/", std::string(web_ui_path));
 
@@ -16,8 +17,8 @@ HTTPServer::HTTPServer(std::string_view web_ui_path, Database *db) : _db(db) {
     _last_fix = _db->get_last_fix();
 }
 
-bool HTTPServer::listen(const std::string &addr, int port) {
-    return svr.listen(addr, port);
+bool HTTPServer::listen(std::string_view addr, int port) {
+    return svr.listen(std::string(addr), port);
 }
 
 void HTTPServer::wait_until_ready() {

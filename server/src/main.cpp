@@ -3,10 +3,10 @@
 #include <functional>
 #include <iostream>
 
-#include "Database.hpp"
 #include "Fix.hpp"
 #include "UDP.hpp"
 #include "constants.hpp"
+#include "db/Database.hpp"
 #include "http/HTTPServer.hpp"
 
 std::function<void(int)> signal_handler;
@@ -19,7 +19,7 @@ int main(void) {
         signal(i, c_signal_handler);
     }
 
-    zouipocar::Database db(zouipocar::DB_PATH);
+    zouipocar::db::Database db(zouipocar::DB_PATH);
     auto last_fix = db.get_last_fix();
 
     zouipocar::http::HTTPServer svr(zouipocar::WEB_UI_PATH, &db);

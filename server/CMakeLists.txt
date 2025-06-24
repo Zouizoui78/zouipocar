@@ -13,6 +13,8 @@ option(ZOUIPOCAR_TESTS "Build unit tests" ON)
 
 set(
     SRC
+    ${PROJECT_SOURCE_DIR}/src/db/Database.cpp
+    ${PROJECT_SOURCE_DIR}/src/db/Database.hpp
     ${PROJECT_SOURCE_DIR}/src/db/SQLiteStatement.cpp
     ${PROJECT_SOURCE_DIR}/src/db/SQLiteStatement.hpp
     ${PROJECT_SOURCE_DIR}/src/Fix.hpp

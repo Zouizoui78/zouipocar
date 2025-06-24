@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "Database.hpp"
+#include "db/Database.hpp"
 #include "http/ErrorMessages.hpp"
 #include "http/HTTPServer.hpp"
 #include "test_tools.hpp"
@@ -13,6 +13,7 @@
 #include <vector>
 
 using namespace zouipocar;
+using namespace zouipocar::db;
 using namespace zouipocar::http;
 using namespace zouipocar_test;
 
