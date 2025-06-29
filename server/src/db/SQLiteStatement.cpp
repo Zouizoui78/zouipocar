@@ -11,7 +11,7 @@ SQLiteStatement::SQLiteStatement(sqlite3 *db_handle, std::string_view source)
     sqlite3_stmt *stmt = nullptr;
     int res = sqlite3_prepare_v2(db_handle, source.cbegin(), source.size(),
                                  &stmt, nullptr);
-    _prepared = SQLitePreparedStatement(stmt);
+    _prepared = std::unique_ptr<sqlite3_stmt, SQLiteStatementDeleter>(stmt);
 
     if (res != SQLITE_OK) {
         throw std::runtime_error(

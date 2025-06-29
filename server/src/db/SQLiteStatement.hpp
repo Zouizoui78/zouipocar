@@ -62,9 +62,7 @@ private:
     struct SQLiteStatementDeleter {
         void operator()(sqlite3_stmt *stmt);
     };
-    using SQLitePreparedStatement =
-        std::unique_ptr<sqlite3_stmt, SQLiteStatementDeleter>;
-    SQLitePreparedStatement _prepared;
+    std::unique_ptr<sqlite3_stmt, SQLiteStatementDeleter> _prepared;
 };
 
 } // namespace zouipocar::db
