@@ -46,7 +46,7 @@ int main(void) {
         }
     };
 
-    svr.listen("0.0.0.0", ZOUIPOCAR_PORT);
+    svr.listen("::0", ZOUIPOCAR_PORT);
 
     return 0;
 }
